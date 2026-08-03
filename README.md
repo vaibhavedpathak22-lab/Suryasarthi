@@ -119,17 +119,42 @@ Provides verified (4.9+ star rated) professional Ayurvedic meal plans and hydrat
 Provides a structured 35-minute (35:00 / 2,100 seconds) guided breathwork and meditation routine following physical practice.
 
 ### 🟢 Basic Features:
-- **6 Structured Phases**:
-  1. *Anulom-Vilom* (Alternate Nostril Breathing)
-  2. *Kapalbhati* (Skull-Shining Breath)
+- **8 Guided Practices**:
+  1. *Dirgha Pranayama* (Three-Part Deep Breathing)
+  2. *Kapalabhati* (Skull-Shining Purification / Shatkarma)
   3. *Bhastrika* (Bellows Breath)
-  4. *Bhramari* (Humming Bee Pranayama)
-  5. *Om Chanting* (Vibrational Harmony)
-  6. *Dhyana* (Silent Meditation)
+  4. *Anulom-Vilom* (Alternate Nostril Balance)
+  5. *Nadi Shodhana* (Classical Channel Purification 1:4:2 Ratio)
+  6. *Ujjayi Pranayama* (Ocean / Psychic Breath)
+  7. *Bhramari* (Humming Bee Breath)
+  8. *Dhyana* (Silent Meditation)
 
 ### 🟡 Intermediate Mechanics:
-- **Target Lock**: Requires completing today's Surya Namaskara goal before manually starting Pranayama.
-- **Dynamic Visuals & Audio**: Displays phase circular progress rings, step instructions, and voice guidance cues.
+- **Classical Yoga & Ayurvedic Standards Engine**:
+  Provides an authentic 11-point Classical Yoga & Ayurveda breakdown for every practice based on *Hatha Yoga Pradipika*, *Gheranda Samhita*, and *Shiva Samhita*:
+  1. Step-by-Step Practice Method
+  2. Beginner, Intermediate & Advanced Inhale-Hold-Exhale Ratios
+  3. Recommended Rounds & Duration
+  4. Posture, Mudra & Eye Position
+  5. Best Time & Empty Stomach Requirements
+  6. Physical Health Benefits
+  7. Mental & Emotional Benefits
+  8. Ayurvedic Benefits (Vata, Pitta, Kapha, Agni, Prana)
+  9. Chakra & Nadi Effects
+  10. Precautions, Contraindications & Common Mistakes
+  11. Progression Guidelines (Beginner → Advanced)
+- **Relocated & Lockable UI Button**:
+  The **"📖 Classical Yoga & Ayurvedic Guide"** button is positioned in the middle section right above round information. It unlocks (`🔓`) at the start of each Pranayama type and setup/pause, and locks (`🔒`) during active live round counting.
+- **8-Practice Tab Navigation Bar**:
+  Inside the modal, an interactive horizontal tab selector bar (`[1. Dirgha]`, `[2. Kapalabhati]`, `[3. Bhastrika]`, `[4. Anulom Vilom]`, `[5. Nadi Shodhana]`, `[6. Ujjayi]`, `[7. Bhramari]`, `[8. Dhyana]`) allows switching to inspect and listen to any of the 8 Pranayama practices separately.
+- **Voice Audio Guidance & Round Freeze**:
+  Tapping any practice tab loads the 11-point Classical Yoga & Ayurveda guide and reads it out loud. Background Pranayama rounds automatically freeze (`📖 Guide Speaking — Round Paused`) while the guide voice is speaking and resume when finished or closed.
+- **Read-Only Authentic Program Total Badge**:
+  The manual `<input type="number">` spinner box in Settings has been completely removed and replaced with an authentic read-only badge (`🏆 Verified Program Lifetime Sets` `[ 0 ]`). Total counts update exclusively through verified practice set completions (`completeSet()`) or verified backup import and auto-recovery scans.
+- **Strict Diet & Hydration Visibility Locking**:
+  The **"Today's Ayurvedic Diet & Hydration"** section (`#card-view-diet-plan`) is completely hidden (`display: none`) from the main screen during incomplete practice and initial Pranayama execution. It appears (`display: flex`) strictly when:
+  1. Today's goal AND the 8th/last type of Pranayama are finished (`endPranayama()`), OR
+  2. The user skips/closes the Pranayama session (`closePranayama()`).
 
 ### 🔴 Advanced Algorithmic Implementation:
 - **Step Timer State Machine (`startPranaPhase`, `endPranayama`)**: Uses precise interval ticks (`pranaTimer`) to update elapsed phase time (`pranaPhaseElapsedMs`) and total time (`data.totalPranaMs`).

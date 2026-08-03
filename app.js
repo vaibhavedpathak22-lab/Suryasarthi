@@ -974,16 +974,18 @@ function render() {
   const tomorrowG = Math.min(goal + (cfg.dailyIncrease || 4), cfg.maxSets);
 
   // Stats row
-  document.getElementById("s-today").textContent  = done;
-  document.getElementById("s-goal").textContent   = isGoalLocked ? (tomorrowG + " 🔒") : goal;
-  document.getElementById("s-streak").textContent = computeStreak();
-  document.getElementById("s-total").textContent  = data.totalAllTime;
+  const sToday = document.getElementById("s-today"); if(sToday) sToday.textContent = done;
+  const sGoal = document.getElementById("s-goal"); if(sGoal) sGoal.textContent = isGoalLocked ? (tomorrowG + " 🔒") : goal;
+  const sStreak = document.getElementById("s-streak"); if(sStreak) sStreak.textContent = computeStreak();
+  const sTotal = document.getElementById("s-total"); if(sTotal) sTotal.textContent = data.totalAllTime;
 
   // Program name + day
-  document.getElementById("prog-name").textContent = "SURYASARTHI 108";
+  const progName = document.getElementById("prog-name"); if(progName) progName.textContent = "SURYASARTHI 108";
   const d=new Date();
-  document.getElementById("day-label").textContent =
-    "Day "+data.programDay+" · "+d.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"});
+  const dayLbl = document.getElementById("day-label");
+  if(dayLbl) {
+    dayLbl.textContent = "Day "+(data.programDay||1)+" · "+d.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"});
+  }
 
   // Render Day 1 Benefits Card if user is on Day 1
   const benefitsEl = document.getElementById("day1-benefits-card");
@@ -1148,6 +1150,7 @@ function render() {
 
   syncChartUI();
   renderBars();
+  updateDietPlanButtonLockUI();
   checkSubscriptionReminder();
 }
 
@@ -1662,6 +1665,8 @@ function startPranaPhase() {
   pranaState.stepIdx    = 0;
   pranaState.roundNum   = 1;
 
+  updatePranaGuideLockButton(false); // Unlock guide button at start of each Pranayama type
+
   document.getElementById("prana-title").textContent  = phase.name;
   document.getElementById("prana-title-hi").textContent = phase.nameHi;
   document.getElementById("prana-desc").textContent   =
@@ -1721,6 +1726,7 @@ function startPranaStep() {
   const stepCardEl = document.getElementById("prana-step");
 
   if(step.action === "setup" || (step.round1Only && isRound1 && !step.count)) {
+    updatePranaGuideLockButton(false); // Unlocked during setup
     stepCardEl.innerHTML =
       '<div class="prana-txt-full">' + textFull + '</div>' +
       '<div class="prana-count-badge" id="prana-live-badge">⏱ ' + (step.dur || 4) + 's remaining</div>';
@@ -1750,6 +1756,7 @@ function startStepExecution(step, isRound1) {
 
   // Case A: Step with live number counting (Inhale, Hold, Exhale, Stroke)
   if(step.count && step.count > 0) {
+    updatePranaGuideLockButton(true); // Lock guide button during running live rounds
     let curSec = 1;
     updateLiveCountUI(step, curSec, maxCount);
     speakLiveStepCount(step, curSec, isRound1);
@@ -1914,6 +1921,7 @@ function advancePranaRound() {
     pranaState.roundNum++;
     pranaState.stepIdx = 0;
     qClear();
+    updatePranaGuideLockButton(false); // Unlocked before round transition
     const lang = cfg.pranaLang || "en";
     const numWord = getLanguageNumber(pranaState.roundNum, lang);
     const rText = lang === "hi" ? ("राउंड " + numWord) :
@@ -1977,7 +1985,9 @@ function endPranayama() {
   if(!data.history[today]) data.history[today] = { sets:0, timeMs:0, goal:0 };
   data.history[today].pranaMs = (data.history[today].pranaMs || 0) + elapsedMs;
   data.totalPranaMs = (data.totalPranaMs || 0) + elapsedMs;
+  data.pranaFinishedToday = true;
   saveAll();
+  updateDietPlanButtonLockUI();
 
   speakPranaInstruction("Pranayama complete. Sit quietly. Namaste. Om Shanti.");
   document.getElementById("prana-step").innerHTML       = '<div class="prana-txt-full">🙏 Practice complete. Namaste.</div>';
@@ -2026,11 +2036,13 @@ function pauseResumePrana() {
     clearPranaTimers();
     try { window.speechSynthesis.cancel(); } catch(e){}
     btn.textContent = "▶ Resume";
+    updatePranaGuideLockButton(false); // Unlocked when paused
     speakText("Paused.");
   } else {
     pranaState.pauseAccMs += Date.now() - pranaState.pauseAt;
     pranaState.pauseAt = 0;
     btn.textContent = "⏸ Pause";
+    updatePranaGuideLockButton(true); // Locked when resumed
     startPranaStep();
     startPranaClocks();
   }
@@ -2052,13 +2064,15 @@ function closePranayama() {
     if(!data.history[today]) data.history[today] = { sets:0, timeMs:0, goal:0 };
     data.history[today].pranaMs = (data.history[today].pranaMs || 0) + elapsedMs;
     data.totalPranaMs = (data.totalPranaMs || 0) + elapsedMs;
-    saveAll();
   }
+  data.pranaClosedToday = true;
+  saveAll();
   pranaState.active = false;
   pranaState.paused = false;
   releaseWakeLock();
   qClear();
   document.getElementById("prana-ov").classList.remove("show");
+  updateDietPlanButtonLockUI();
 }
 
 /* ── Pranayama overlay buttons ──────────────────────────────── */
@@ -2152,7 +2166,10 @@ function openSettings() {
   document.getElementById("cfg-brk").value      = cfg.breakEvery;
   document.getElementById("cfg-pace").value     = cfg.poseSeconds;
   document.getElementById("cfg-grace").value    = cfg.graceSeconds;
-  document.getElementById("cfg-lifetime").value = data.totalAllTime;
+  const ltBadge = document.getElementById("cfg-lifetime-badge");
+  if(ltBadge) ltBadge.textContent = data.totalAllTime;
+  const ltInput = document.getElementById("cfg-lifetime");
+  if(ltInput) ltInput.value = data.totalAllTime;
   togSet("tog-voice",   cfg.voiceOn);
   togSet("tog-mantras", cfg.mantrasOn !== false);
   togSet("tog-breath",  cfg.breathOn  !== false);
@@ -2183,8 +2200,7 @@ function closeSettings() {
   cfg.breakEvery    = parseInt(document.getElementById("cfg-brk").value)   ||12;
   cfg.poseSeconds   = Math.max(2, Math.min(30, parseInt(document.getElementById("cfg-pace").value)||5));
   cfg.graceSeconds  = Math.max(0, Math.min(30, parseInt(document.getElementById("cfg-grace").value)||5));
-  const lt=parseInt(document.getElementById("cfg-lifetime").value);
-  if(!isNaN(lt)&&lt>=0) data.totalAllTime=lt;
+  // totalAllTime is read-only and automatically computed from backup/recovery & completed sets
   cfg.voiceOn          = togGet("tog-voice");
   cfg.mantrasOn        = togGet("tog-mantras");
   cfg.breathOn         = togGet("tog-breath");
@@ -2335,6 +2351,8 @@ function checkMidnightRollover() {
     data.baseGoal = 0;
     data.goalDate = "";
     data.lastDate = today;
+    data.pranaFinishedToday = false;
+    data.pranaClosedToday = false;
 
     const newG = todayGoal();
     if(!data.history[today]) {
@@ -4888,6 +4906,527 @@ function grantPremiumAccess(sku, response) {
   saveAll();
   hideAppLock();
   render();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CLASSICAL YOGA & AYURVEDIC PRANAYAMA STANDARDS
+   Based on Hatha Yoga Pradipika, Gheranda Samhita, & Shiva Samhita
+═══════════════════════════════════════════════════════════════ */
+const CLASSICAL_YOGA_AYURVEDA_STANDARDS = {
+  dirgha: {
+    title: "Dirgha Pranayama (Three-Part Deep Breathing)",
+    classicalText: "Patanjali Yoga Sutras (2.49-51) & Gheranda Samhita (5.46-52)",
+    method: "Sit comfortably with an erect spine. Inhale sequentially in three distinct stages: first fill the lower abdomen (belly), second expand the intercostal ribs, third lift the upper chest and collarbones. Exhale in exact reverse order: upper chest falls, ribs contract, belly draws inward toward the spine.",
+    ratios: {
+      beginner: "1 : 0 : 1 (4s Inhale, 4s Exhale — Equal Sama Vritti)",
+      intermediate: "1 : 0 : 2 (4s Inhale, 8s Exhale — Extended Visama Vritti)",
+      advanced: "1 : 1 : 2 (4s Inhale, 4s Antar Kumbhaka retention, 8s Exhale)"
+    },
+    roundsDuration: "6 – 10 rounds (2.5 – 5.0 minutes daily)",
+    postureMudraEye: "Padmasana (Lotus Pose), Siddhasana, or Sukhasana. Hands in Chin Mudra (thumb & index tip joining, palms up on knees). Eyes softly closed with internal awareness at Manipuraka (Navel) & Anahata (Heart) Chakras.",
+    timeFasting: "Best practiced during Brahma Muhurta (4:00 AM – 6:00 AM) or Sunset (Sandhya). Strictly on an empty stomach (minimum 3–4 hours after meals).",
+    physicalBenefits: "Increases vital lung capacity by up to 30%, mobilizes the diaphragm, strengthens intercostal muscles, optimizes arterial blood oxygenation, and aids venous blood return.",
+    mentalBenefits: "Activates the Parasympathetic Nervous System via Vagus nerve stimulation. Reduces cortisol, calms hyper-arousal, alleviates panic and anxiety, and brings immediate mental clarity.",
+    ayurvedicBenefits: {
+      vata: "Strongly pacifies Vata (Samana Vayu & Vyana Vayu) — grounds nervous energy.",
+      pitta: "Cools excess Sadhaka Pitta — reduces anger and emotional heat.",
+      kapha: "Expands chest region to prevent stagnant Kledaka Kapha accumulation.",
+      agni: "Balances Jatharagni (digestive fire) without creating harsh heat.",
+      prana: "Harmonizes Prana Vayu (chest intake) and Apana Vayu (elimination)."
+    },
+    chakraNadi: "Harmonizes Manipuraka (Solar Plexus) & Anahata (Heart) Chakras. Equalizes energy flow between Ida (Moon/Left) and Pingala (Sun/Right) Nadis.",
+    precautions: "Avoid forcing or straining the breath. Keep shoulders relaxed; do not hunch shoulders upward during inhalation. Caution during acute respiratory asthma flare-ups.",
+    progression: "Stage 1: Equal 4:4 breath (1 week) → Stage 2: Extended 4:8 exhale (2 weeks) → Stage 3: 4:4:8 ratio with gentle internal retention (Antar Kumbhaka)."
+  },
+
+  kapalabhati: {
+    title: "Kapalabhati (Skull-Shining Purification / Shatkarma)",
+    classicalText: "Hatha Yoga Pradipika (2.35–37) & Gheranda Samhita (1.55–58)",
+    method: "Sit tall with erect spine. Inhalation is passive, natural, and quiet. Exhalation is rapid, active, sharp, and forceful through both nostrils by contracting the lower abdominal muscles and snapping the navel inward toward the spine.",
+    ratios: {
+      beginner: "30 strokes per round at 1 stroke/sec (No retention)",
+      intermediate: "36–60 strokes per round at 1.2 strokes/sec followed by 10s Antar Kumbhaka",
+      advanced: "120 strokes per round followed by 30s Antar Kumbhaka with Jalandhara & Mula Bandhas"
+    },
+    roundsDuration: "3 – 5 rounds (36 strokes/round, total 4.5 minutes)",
+    postureMudraEye: "Siddhasana or Padmasana. Hands in Chin Mudra or Adi Mudra. Eyes closed with gaze turned inward at Bhrumadhya (Eyebrow Center — Ajna Chakra).",
+    timeFasting: "Early morning during Brahma Muhurta. Strictly on a completely empty stomach (minimum 4 hours post-meal).",
+    physicalBenefits: "Clears frontal cranial sinuses (*Kapala*), expels stale residual air and excess carbon dioxide, tones abdominal rectus muscles, and stimulates pancreatic secretion.",
+    mentalBenefits: "Dispels mental lethargy (*Tamas*), sharpens cognitive alertness, enhances focus, and induces a feeling of lightness and clarity in the skull.",
+    ayurvedicBenefits: {
+      vata: "Stimulates Samana Vayu; exercise moderation to avoid over-activating Vyana Vayu.",
+      pitta: "Increases internal body heat (Pitta) — practice gently in hot summer climates.",
+      kapha: "Strongly destroys excess Kapha (*Kapha Nashak*) and clears mucosal stagnation.",
+      agni: "Kindles intense Jatharagni (digestive fire) & Bhutagni (liver metabolic fire).",
+      prana: "Awakens Udana Vayu (upward energy) & Prana Vayu."
+    },
+    chakraNadi: "Purifies all 72,000 Nadis as described in Hatha Yoga Pradipika. Strongly stimulates Manipuraka (Solar Plexus) & Ajna (Third Eye) Chakras.",
+    precautions: "STRICT CONTRAINDICATIONS: High Blood Pressure, Heart Conditions, Hernia, Epilepsy, Glaucoma, Pregnancy, Recent Abdominal Surgery. Mistake: Hunching shoulders or facial grimacing during strokes.",
+    progression: "Stage 1: 20 strokes @ 1 stroke/sec → Stage 2: 36–60 strokes with 12s Kumbhaka → Stage 3: 120 strokes with Jalandhara and Mula Bandhas."
+  },
+
+  bhastrika: {
+    title: "Bhastrika (Bellows Breath)",
+    classicalText: "Hatha Yoga Pradipika (2.59–67) & Gheranda Samhita (5.75–77)",
+    method: "Mimic the action of a blacksmith's bellows. Inhale forcefully AND exhale forcefully through both nostrils with equal force and speed, expanding and contracting the abdomen. Conclude round with a deep inhalation, hold (Kumbhaka), and slow exhalation.",
+    ratios: {
+      beginner: "15 rapid equal breaths followed by 1 : 0 : 1 deep breath",
+      intermediate: "24 rapid breaths followed by 1 : 4 : 2 retention (4s in, 16s hold, 8s out)",
+      advanced: "50–100 rapid breaths followed by 1 : 4 : 2 : 1 Kumbhaka with Mahabandha (Mula + Uddiyana + Jalandhara)"
+    },
+    roundsDuration: "3 – 4 rounds (24 breaths/round, total 3.0 minutes)",
+    postureMudraEye: "Padmasana, Vajrasana, or Siddhasana. Hands in Jnana Mudra or loose fists at shoulder height. Eyes closed, internal awareness at Anahata (Heart) & Ajna Chakras.",
+    timeFasting: "Early morning at sunrise or cold weather. Strictly empty stomach (minimum 4 hours post-meal).",
+    physicalBenefits: "Heats the entire body, purifies bronchial airways, strengthens diaphragm and intercostals, boosts immune response, and accelerates cellular oxygen intake.",
+    mentalBenefits: "Removes Tamasic inertia and Rajasic agitation, bringing the mind into Sattvic tranquility, resilience, and vitality.",
+    ayurvedicBenefits: {
+      vata: "Balances Vata when practiced with proper internal retention.",
+      pitta: "Increases Pitta heat; balances Tridosha according to Hatha Yoga Pradipika 2.65.",
+      kapha: "Rapidly liquefies and expels thick Kapha phlegm.",
+      agni: "Maximizes Jatharagni and Dhatu Agni (tissue metabolism).",
+      prana: "Forces Prana into Sushumna Nadi, piercing the 3 Granthis."
+    },
+    chakraNadi: "Pierces Brahma Granthi (Root), Vishnu Granthi (Heart), & Rudra Granthi (Head). Directs Prana into central Sushumna Nadi.",
+    precautions: "CONTRAINDICATED in Severe Hypertension, Vertigo, Heart conditions, Gastric Ulcers, Pregnancy, Ear Infection. Mistake: Excessive throat friction or hyperventilation without control.",
+    progression: "Stage 1: 12 slow bellows breaths → Stage 2: 24 breaths with 15s hold → Stage 3: 50 breaths with Mahabandha."
+  },
+
+  anulom: {
+    title: "Anulom Vilom (Alternate Nostril Balance)",
+    classicalText: "Yoga Yajnavalkya (6.1–25) & Shiva Samhita (3.22–30)",
+    method: "Raise right hand in Nasagra / Vishnu Mudra. Close right nostril with thumb, inhale smoothly through left nostril. Close left nostril with ring finger, release right nostril and exhale smoothly. Inhale through right nostril, close right, exhale through left. Maintain continuous rhythm without breath retention.",
+    ratios: {
+      beginner: "1 : 0 : 1 (4s Inhale Left, 4s Exhale Right, 4s Inhale Right, 4s Exhale Left)",
+      intermediate: "1 : 0 : 2 (4s Inhale, 8s Exhale — Extended Exhalation)",
+      advanced: "1 : 0 : 2 (5s Inhale, 10s Exhale — Deep Slow Flow)"
+    },
+    roundsDuration: "10 – 15 rounds (6.0 minutes daily)",
+    postureMudraEye: "Padmasana or Siddhasana. Right hand in Nasagra / Vishnu Mudra, Left hand in Chin Mudra on left knee. Eyes closed, awareness at Bhrumadhya (Ajna Chakra).",
+    timeFasting: "Any time of day (ideal at dawn, noon, sunset). Empty stomach or minimum 2 hours after a light meal.",
+    physicalBenefits: "Synchronizes left and right brain hemisphere activity, balances sympathetic and parasympathetic nervous systems, and improves cardiovascular rhythm.",
+    mentalBenefits: "Alleviates anxiety, stress, emotional mood swings, and insomnia. Restores mental focus, patience, and inner equilibrium.",
+    ayurvedicBenefits: {
+      vata: "Pacifies Prana Vayu and Vyana Vayu — excellent for Vata disorders.",
+      pitta: "Cools excess Pitta and reduces vascular heat.",
+      kapha: "Regulates Kapha flow throughout the upper respiratory channels.",
+      agni: "Balances Samana Agni in the solar plexus.",
+      prana: "Equalizes Ida (Moon/Left/Cooling) & Pingala (Sun/Right/Heating) Nadis."
+    },
+    chakraNadi: "Purifies Ida & Pingala Nadis, establishing balance across Ajna (Third Eye) Chakra.",
+    precautions: "Avoid pressing nostrils too hard. Do not rush or force the airflow; breathing should be silent, smooth, and un-jerky.",
+    progression: "Stage 1: Equal 4:4 ratio → Stage 2: 4:8 ratio → Stage 3: Transition to Nadi Shodhana with Antar Kumbhaka."
+  },
+
+  nadi: {
+    title: "Nadi Shodhana (Channel Purification 1:4:2 Ratio)",
+    classicalText: "Hatha Yoga Pradipika (2.7–10) & Gheranda Samhita (5.38–45)",
+    method: "Classical alternate nostril breathing with internal breath retention (Antar Kumbhaka). Inhale left nostril (4s), retain breath with both nostrils closed (16s), exhale right nostril (8s). Inhale right (4s), retain (16s), exhale left (8s).",
+    ratios: {
+      beginner: "1 : 2 : 2 (4s Inhale, 8s Hold, 8s Exhale)",
+      intermediate: "1 : 4 : 2 (4s Inhale, 16s Antar Kumbhaka, 8s Exhale)",
+      advanced: "1 : 4 : 2 : 1 (4s Inhale, 16s Antar Kumbhaka, 8s Exhale, 4s Bahya Kumbhaka with Jalandhara & Mula Bandhas)"
+    },
+    roundsDuration: "5 – 10 rounds (5.0 minutes daily)",
+    postureMudraEye: "Siddhasana or Padmasana. Right hand in Vishnu Mudra, Left hand in Chin Mudra. Eyes closed, awareness focused on Sushumna Nadi & Ajna Chakra.",
+    timeFasting: "Dawn (Brahma Muhurta) & Sunset. Strictly on an empty stomach (minimum 4 hours post-meal).",
+    physicalBenefits: "Maximizes arterial oxygen saturation, enhances Heart Rate Variability (HRV), purifies respiratory pathways, and optimizes cellular metabolism.",
+    mentalBenefits: "Induces profound meditative quietude, clears subconscious impressions (*Samskaras*), and enhances deep cognitive intelligence.",
+    ayurvedicBenefits: {
+      vata: "Perfectly balances Vata (*Tridosha Samata*) as detailed in Gheranda Samhita 5.38.",
+      pitta: "Purifies Sadhaka & Ranjaka Pitta.",
+      kapha: "Clears Kledaka Kapha from subtle energy pathways.",
+      agni: "Establishes Samagni (perfect balanced metabolic fire).",
+      prana: "Directs Prana into central Sushumna Nadi."
+    },
+    chakraNadi: "Completely purifies all 72,000 Nadis (*Nadi Shuddhi*), unlocks Sushumna Nadi, and prepares for Kundalini awakening.",
+    precautions: "Never force breath retention (Kumbhaka). If feeling dizzy or breathless, immediately drop retention and return to equal breathing. Contraindicated in unmanaged severe hypertension.",
+    progression: "Stage 1: 4:8:8 ratio → Stage 2: Classical 4:16:8 ratio → Stage 3: 4:16:8:4 ratio with Jalandhara, Uddiyana, & Mula Bandhas (Maha Bandha)."
+  },
+
+  ujjayi: {
+    title: "Ujjayi Pranayama (Ocean / Psychic Breath)",
+    classicalText: "Hatha Yoga Pradipika (2.51–53) & Gheranda Samhita (5.69–72)",
+    method: "Slightly contract the glottis in the throat. Inhale and exhale through the nose, creating a soft, soothing, continuous ocean-wave or soft whispering sound in the throat (*Ajapa Japa*).",
+    ratios: {
+      beginner: "1 : 0 : 1 (4s Inhale with throat sound, 4s Exhale with throat sound)",
+      intermediate: "1 : 0 : 2 (5s Inhale, 10s Exhale)",
+      advanced: "1 : 4 : 2 (5s Inhale, 20s Antar Kumbhaka with Jalandhara Bandha, 10s Exhale)"
+    },
+    roundsDuration: "6 – 12 rounds (1.5 – 3.0 minutes)",
+    postureMudraEye: "Any comfortable meditative pose or during Asana practice. Chin Mudra or Khechari Mudra (tongue tip folded back against soft palate). Eyes closed, awareness at Vishuddhi (Throat) Chakra.",
+    timeFasting: "Any time of day. Safe on light stomach or empty stomach.",
+    physicalBenefits: "Lowers arterial blood pressure, regulates thyroid & parathyroid endocrine secretions, warms incoming air, and relieves bronchitis and asthma.",
+    mentalBenefits: "Relieves insomnia, nervous tension, and mental anxiety. Highly effective before sleep to quiet racing thoughts.",
+    ayurvedicBenefits: {
+      vata: "Calms Udana Vayu (throat & speech energy) and Vyana Vayu.",
+      pitta: "Cools internal heat when practiced without retention.",
+      kapha: "Removes excess Kapha phlegm from throat and lungs (*Hatha Yoga Pradipika 2.53*).",
+      agni: "Stabilizes Vishama Agni.",
+      prana: "Harmonizes Prana Vayu at the throat center."
+    },
+    chakraNadi: "Activates Vishuddhi (Throat) Chakra & Bindu Visarga; balances Ida & Pingala Nadis.",
+    precautions: "Do not over-constrict the throat causing harsh friction. Avoid strain if suffering from severe low blood pressure.",
+    progression: "Stage 1: Equal 4:4 ocean breath → Stage 2: Extended 5:10 exhale → Stage 3: Khechari Mudra + Jalandhara Bandha internal retention."
+  },
+
+  bhramari: {
+    title: "Bhramari (Humming Bee Breath)",
+    classicalText: "Hatha Yoga Pradipika (2.68) & Gheranda Samhita (5.78–82)",
+    method: "Inhale deeply through both nostrils. On exhalation, produce a smooth, continuous, low-pitched humming sound (*Mmmmm*) like a black bee. Apply Shanmukhi Mudra to close external senses.",
+    ratios: {
+      beginner: "1 : 0 : 2 (4s Inhale, 8s–10s Humming Exhale)",
+      intermediate: "1 : 0 : 3 (5s Inhale, 15s Humming Exhale)",
+      advanced: "1 : 2 : 3 (5s Inhale, 10s Antar Kumbhaka, 15s–20s Humming Exhale with Jalandhara Bandha)"
+    },
+    roundsDuration: "10 – 15 rounds (3.5 – 5.0 minutes)",
+    postureMudraEye: "Padmasana or Sukhasana. Shanmukhi Mudra (thumbs close ears, index fingers on eyelids, middle fingers on nostril sides, ring & little fingers above & below lips). Eyes closed, internal vibration focus.",
+    timeFasting: "Night before bedtime or Early Morning. Best on empty stomach.",
+    physicalBenefits: "Increases Nitric Oxide (NO) production in nasal airways 15-fold, dilating blood vessels, reducing blood pressure, and boosting mucosal immunity.",
+    mentalBenefits: "Provides immediate neural relaxation, alleviates anger, frustration, and insomnia, and induces deep Sattvic stillness.",
+    ayurvedicBenefits: {
+      vata: "Exceptionally pacifies Vata (Prana Vayu & Tarpaka Kapha) — premier anti-anxiety practice.",
+      pitta: "Cools Sadhaka Pitta, reducing mental anger and heat.",
+      kapha: "Soothes Kledaka Kapha.",
+      agni: "Harmonizes Pranic Agni.",
+      prana: "Directs Prana into the brain and cranial nerves."
+    },
+    chakraNadi: "Resonates Ajna (Third Eye) & Sahasrara (Crown) Chakras. Awakens internal subtle sound (*Nada Anusandhana*).",
+    precautions: "Do not press hard on eyeballs in Shanmukhi Mudra. Contraindicated in severe active ear infections.",
+    progression: "Stage 1: Simple humming exhale → Stage 2: Shanmukhi Mudra → Stage 3: Antar Kumbhaka + Nada Anusandhana meditation."
+  },
+
+  meditation: {
+    title: "Dhyana Meditation (Silent Awareness)",
+    classicalText: "Patanjali Yoga Sutras (3.2) & Shiva Samhita (5.160–185)",
+    method: "Maintain absolute stillness of body, breath, and mind. Observe the natural, un-forced breath as a silent witness (*Sakshi Bhava*), allowing pure awareness to rest in non-dual consciousness.",
+    ratios: {
+      beginner: "Natural un-controlled breath flow (100% effortless awareness)",
+      intermediate: "Natural breath observation with subtle So-Ham mantra resonance",
+      advanced: "Nirguna Dhyana — pure objectless absorption (*Samadhi*)"
+    },
+    roundsDuration: "1 continuous session (9.0 – 15.0 minutes)",
+    postureMudraEye: "Padmasana, Siddhasana, or Sukhasana with spine 100% erect. Dhyana Mudra (right palm resting over left palm in lap). Eyes softly closed, awareness at Ajna (Eyebrow Center) or Anahata (Heart Center).",
+    timeFasting: "Dawn (Brahma Muhurta) / Night before sleep. Empty stomach preferred.",
+    physicalBenefits: "Triggers maximum physiological recovery, normalizes cortisol & stress hormones, stabilizes EEG brainwave states (Alpha & Theta), and accelerates cellular repair.",
+    mentalBenefits: "Dissolves mental duality, cultivates unwavering concentration (*Ekagrata*), inner serenity, and unconditioned bliss (*Ananda*).",
+    ayurvedicBenefits: {
+      vata: "Rebuilds Ojas (vital essence), Tejas (radiance), & Prana.",
+      pitta: "Pacifies Sadhaka Pitta.",
+      kapha: "Harmonizes Tarpaka Kapha.",
+      agni: "Achieves Samagni (perfect metabolic equilibrium).",
+      prana: "Merges Prana into Sushumna Nadi."
+    },
+    chakraNadi: "Harmonizes all 7 Chakras; merges Prana into Sushumna Nadi leading toward Samadhi.",
+    precautions: "Avoid slouching the spine or falling into dull sleep (*Laya*). Maintain an alert yet completely relaxed witness attitude.",
+    progression: "Stage 1: Breath awareness (Anapanasati) → Stage 2: Mantra Japa → Stage 3: Pure Nirguna Meditation (Silent Witness)."
+  }
+};
+
+/* ── Diet & Hydration Plan Completion Locking System ────────── */
+function isDietPlanUnlocked() {
+  const done = todayDone(), goal = todayGoal();
+  const isGoalComplete = done >= goal && goal > 0;
+  const isPranaFinished = !!(data.pranaFinishedToday || pranaState.completedToday);
+  const isPranaClosed = !!data.pranaClosedToday;
+
+  if (isGoalComplete && isPranaFinished) return true;
+  if (isPranaClosed) return true;
+
+  return false;
+}
+
+function updateDietPlanButtonLockUI() {
+  const card = document.getElementById("card-view-diet-plan");
+  const btn = document.getElementById("btn-view-diet-plan");
+  const unlocked = isDietPlanUnlocked();
+
+  if (card) {
+    card.style.display = unlocked ? "flex" : "none";
+  }
+  if (btn) {
+    btn.textContent = unlocked ? "View Plan" : "🔒 Locked";
+    btn.style.background = unlocked ? "var(--acc-dim)" : "var(--surf2)";
+    btn.style.borderColor = unlocked ? "var(--acc)" : "var(--bdr)";
+    btn.style.color = unlocked ? "var(--acc-lt)" : "var(--muted)";
+    btn.style.cursor = unlocked ? "pointer" : "not-allowed";
+  }
+}
+
+function handleDietPlanClick(e) {
+  if (e) e.stopPropagation();
+
+  if (!isDietPlanUnlocked()) {
+    vib(30);
+    const lang = cfg.pranaLang || "en";
+    const msg = lang === "hi"
+      ? "🔒 आज का आयुर्वेदिक आहार और जल योजना सूर्य नमस्कार लक्ष्य और प्राणायाम पूरा करने (या बंद करने पर) अनलॉक होगी!"
+      : lang === "mr"
+      ? "🔒 आजची आयुर्वेदिक आहार आणि पाणी योजना सूर्य नमस्कार ध्येय आणि प्राणायाम पूर्ण झाल्यावर (किंवा बंद केल्यावर) अनलॉक होईल!"
+      : "🔒 Today's Ayurvedic Diet & Hydration Plan unlocks after completing today's Surya Namaskara target & Pranayama routine (or closing Pranayama)!";
+    alert(msg);
+    return;
+  }
+
+  showDietModal();
+}
+window.handleDietPlanClick = handleDietPlanClick;
+window.isDietPlanUnlocked = isDietPlanUnlocked;
+
+let _pranaPausedForGuide = false;
+
+function pausePranaForGuideSpeech() {
+  if (pranaState.active && !pranaState.paused) {
+    _pranaPausedForGuide = true;
+    clearPranaTimers();
+    const badgeEl = document.getElementById("prana-live-badge");
+    if (badgeEl) badgeEl.innerHTML = "📖 Guide Speaking — Round Paused";
+  }
+}
+
+function resumePranaFromGuideSpeech() {
+  if (_pranaPausedForGuide) {
+    _pranaPausedForGuide = false;
+    if (pranaState.active && !pranaState.paused) {
+      startPranaStep();
+      startPranaClocks();
+    }
+  }
+}
+
+let _guideSpeechActive = false;
+
+function updatePranaGuideLockButton(isLocked) {
+  const btn = document.getElementById("btn-prana-guide");
+  const lockIcon = document.getElementById("prana-guide-lock-icon");
+  if (btn) {
+    btn.disabled = isLocked;
+    btn.style.opacity = isLocked ? "0.5" : "1";
+    btn.style.cursor = isLocked ? "not-allowed" : "pointer";
+  }
+  if (lockIcon) {
+    lockIcon.textContent = isLocked ? "🔒" : "🔓";
+  }
+}
+
+function handlePranaGuideClick() {
+  const btn = document.getElementById("btn-prana-guide");
+  if (btn && btn.disabled) {
+    vib(30);
+    const lang = cfg.pranaLang || "en";
+    const msg = lang === "hi"
+      ? "🔒 सक्रिय राउंड गिनती के दौरान शास्त्रीय गाइड लॉक है। विराम लें या गाइड देखने के लिए राउंड पूरा होने की प्रतीक्षा करें!"
+      : lang === "mr"
+      ? "🔒 ॲक्टिव्ह फेरी मोजणीदरम्यान क्लासिकल मार्गदर्शक लॉक आहे. विराम घ्या किंवा मार्गदर्शक पाहण्यासाठी फेरी पूर्ण होण्याची वाट पाहा!"
+      : "🔒 Classical Guide is locked during active round counting. Pause or wait for the round to complete to view!";
+    alert(msg);
+    return;
+  }
+  showPranaGuideModal();
+}
+
+function speakClassicalGuideText(data) {
+  if (voiceMuted || !window.speechSynthesis) return;
+  const lang = cfg.pranaLang || "en";
+
+  try {
+    try { window.speechSynthesis.cancel(); } catch(e){}
+
+    const targetData = data || (CLASSICAL_YOGA_AYURVEDA_STANDARDS[PRANAYAMA_BASE[pranaState.phaseIdx]?.id] || CLASSICAL_YOGA_AYURVEDA_STANDARDS.dirgha);
+
+    const fullText = `${targetData.title}. Classical Text References: ${targetData.classicalText}. 1. Step-by-Step Practice Method: ${targetData.method}. 2. Inhale, Hold, Exhale Ratios: Beginner: ${targetData.ratios.beginner}. Intermediate: ${targetData.ratios.intermediate}. Advanced: ${targetData.ratios.advanced}. 3. Recommended Duration: ${targetData.roundsDuration}. 4. Body Posture and Mudra: ${targetData.postureMudraEye}. 5. Best Time and Empty Stomach: ${targetData.timeFasting}. 6. Physical Health Benefits: ${targetData.physicalBenefits}. 7. Mental and Emotional Benefits: ${targetData.mentalBenefits}. 8. Ayurvedic Benefits: Vata: ${targetData.ayurvedicBenefits.vata}. Pitta: ${targetData.ayurvedicBenefits.pitta}. Kapha: ${targetData.ayurvedicBenefits.kapha}. Agni: ${targetData.ayurvedicBenefits.agni}. Prana: ${targetData.ayurvedicBenefits.prana}. 9. Chakra and Nadi Effects: ${targetData.chakraNadi}. 10. Precautions and Contraindications: ${targetData.precautions}. 11. Progression Guidelines: ${targetData.progression}.`;
+
+    const u = new SpeechSynthesisUtterance(fullText);
+    const vList = window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
+
+    u.rate = 1.0;
+
+    if (lang === "hi") {
+      u.lang = "hi-IN";
+      const hv = vList.find(v => v.lang === "hi-IN" && v.localService) ||
+                 vList.find(v => v.lang === "hi-IN") ||
+                 vList.find(v => v.lang.startsWith("hi")) || null;
+      if (hv) u.voice = hv;
+    } else if (lang === "mr") {
+      u.lang = "hi-IN";
+      const hv = vList.find(v => v.lang === "hi-IN") || null;
+      if (hv) u.voice = hv;
+    } else {
+      u.lang = "en-IN";
+      const ev = vList.find(v => v.lang === "en-IN") || vList.find(v => v.lang.startsWith("en")) || null;
+      if (ev) u.voice = ev;
+    }
+
+    u.onstart = () => {
+      _guideSpeechActive = true;
+      updateGuideVoiceBtnUI(true);
+      pausePranaForGuideSpeech();
+    };
+    u.onend = () => {
+      _guideSpeechActive = false;
+      updateGuideVoiceBtnUI(false);
+      resumePranaFromGuideSpeech();
+    };
+    u.onerror = () => {
+      _guideSpeechActive = false;
+      updateGuideVoiceBtnUI(false);
+      resumePranaFromGuideSpeech();
+    };
+
+    window.speechSynthesis.speak(u);
+  } catch (e) {
+    console.warn("Guide speech error:", e);
+  }
+}
+
+function toggleGuideVoice() {
+  if (_guideSpeechActive) {
+    stopClassicalGuideSpeech();
+  } else {
+    const targetId = PRANAYAMA_BASE[pranaState.phaseIdx] ? PRANAYAMA_BASE[pranaState.phaseIdx].id : "dirgha";
+    const data = CLASSICAL_YOGA_AYURVEDA_STANDARDS[targetId] || CLASSICAL_YOGA_AYURVEDA_STANDARDS.dirgha;
+    speakClassicalGuideText(data);
+  }
+}
+
+function stopClassicalGuideSpeech() {
+  _guideSpeechActive = false;
+  if (window.speechSynthesis) {
+    try { window.speechSynthesis.cancel(); } catch (e) {}
+  }
+  updateGuideVoiceBtnUI(false);
+  resumePranaFromGuideSpeech();
+}
+
+function updateGuideVoiceBtnUI(isPlaying) {
+  const btn = document.getElementById("guide-voice-btn");
+  if (btn) {
+    btn.innerHTML = isPlaying ? "⏹ Stop Voice" : "🔊 Listen Voice";
+    btn.style.background = isPlaying ? "rgba(255,59,48,0.25)" : "var(--acc-dim)";
+    btn.style.borderColor = isPlaying ? "var(--danger)" : "var(--acc)";
+    btn.style.color = isPlaying ? "var(--danger)" : "var(--acc-lt)";
+  }
+}
+
+function switchGuideTab(targetId) {
+  stopClassicalGuideSpeech();
+  showPranaGuideModal(targetId);
+}
+
+function showPranaGuideModal(phaseId) {
+  const targetId = phaseId || (PRANAYAMA_BASE[pranaState.phaseIdx] ? PRANAYAMA_BASE[pranaState.phaseIdx].id : "dirgha");
+  const data = CLASSICAL_YOGA_AYURVEDA_STANDARDS[targetId] || CLASSICAL_YOGA_AYURVEDA_STANDARDS.dirgha;
+
+  const titleEl = document.getElementById("guide-modal-title");
+  const contentEl = document.getElementById("guide-modal-content");
+
+  const tabs = [
+    { id: "dirgha", label: "1. Dirgha" },
+    { id: "kapalabhati", label: "2. Kapalabhati" },
+    { id: "bhastrika", label: "3. Bhastrika" },
+    { id: "anulom", label: "4. Anulom Vilom" },
+    { id: "nadi", label: "5. Nadi Shodhana" },
+    { id: "ujjayi", label: "6. Ujjayi" },
+    { id: "bhramari", label: "7. Bhramari" },
+    { id: "meditation", label: "8. Dhyana" }
+  ];
+
+  const tabHtml = `
+    <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:10px;border-bottom:1px solid var(--bdr);scrollbar-width:none;-webkit-overflow-scrolling:touch;">
+      ${tabs.map(t => `
+        <button onclick="switchGuideTab('${t.id}')" style="background:${t.id === targetId ? 'var(--acc-dim)' : 'var(--surf2)'};border:1px solid ${t.id === targetId ? 'var(--acc)' : 'var(--bdr)'};color:${t.id === targetId ? 'var(--acc-lt)' : 'var(--txt2)'};font-size:10px;font-weight:800;padding:5px 10px;border-radius:10px;cursor:pointer;white-space:nowrap;transition:all .2s ease">
+          ${t.label}
+        </button>
+      `).join('')}
+    </div>
+  `;
+
+  if (titleEl) titleEl.textContent = "📜 " + data.title;
+  if (contentEl) {
+    contentEl.innerHTML = tabHtml + `
+      <div style="background:var(--surf2);border:1px solid var(--acc-dim);border-radius:12px;padding:10px 12px;">
+        <div style="font-size:10px;font-weight:800;color:var(--acc-lt);text-transform:uppercase;">Classical Text References</div>
+        <div style="font-size:12px;font-weight:700;color:var(--txt);margin-top:2px;">${data.classicalText}</div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:800;color:var(--acc);margin-bottom:2px;">1. 🧘 Step-by-Step Practice Method</div>
+        <div style="color:var(--txt2);">${data.method}</div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:800;color:var(--acc);margin-bottom:2px;">2. ⏱ Inhale : Hold : Exhale Ratios</div>
+        <div style="display:grid;gap:4px;color:var(--txt2);">
+          <div>🟢 <strong>Beginner:</strong> ${data.ratios.beginner}</div>
+          <div>🟡 <strong>Intermediate:</strong> ${data.ratios.intermediate}</div>
+          <div>🔴 <strong>Advanced:</strong> ${data.ratios.advanced}</div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:800;color:var(--acc);margin-bottom:2px;">3. 🎯 Rounds &amp; Recommended Duration</div>
+        <div style="color:var(--txt2);">${data.roundsDuration}</div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:800;color:var(--acc);margin-bottom:2px;">4. 🪑 Posture, Hand Mudra &amp; Eye Position</div>
+        <div style="color:var(--txt2);">${data.postureMudraEye}</div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:800;color:var(--acc);margin-bottom:2px;">5. 🌅 Best Time &amp; Empty Stomach Requirements</div>
+        <div style="color:var(--txt2);">${data.timeFasting}</div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:800;color:var(--acc);margin-bottom:2px;">6. 💪 Physical Health Benefits</div>
+        <div style="color:var(--txt2);">${data.physicalBenefits}</div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:800;color:var(--acc);margin-bottom:2px;">7. 🧠 Mental &amp; Emotional Benefits</div>
+        <div style="color:var(--txt2);">${data.mentalBenefits}</div>
+      </div>
+
+      <div style="background:linear-gradient(135deg,rgba(29,184,127,0.1),rgba(15,80,55,0.2));border:1px solid var(--acc-dim);border-radius:12px;padding:10px 12px;">
+        <div style="font-size:11px;font-weight:800;color:var(--acc-lt);margin-bottom:6px;">8. 🌿 Ayurvedic Benefits (Vata, Pitta, Kapha, Agni, Prana)</div>
+        <div style="display:grid;gap:4px;color:var(--txt2);">
+          <div>💨 <strong>Vata:</strong> ${data.ayurvedicBenefits.vata}</div>
+          <div>🔥 <strong>Pitta:</strong> ${data.ayurvedicBenefits.pitta}</div>
+          <div>🌊 <strong>Kapha:</strong> ${data.ayurvedicBenefits.kapha}</div>
+          <div>⚡ <strong>Agni:</strong> ${data.ayurvedicBenefits.agni}</div>
+          <div>🫁 <strong>Prana:</strong> ${data.ayurvedicBenefits.prana}</div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:800;color:var(--acc);margin-bottom:2px;">9. 🧘‍♂️ Chakra &amp; Nadi Effects</div>
+        <div style="color:var(--txt2);">${data.chakraNadi}</div>
+      </div>
+
+      <div style="background:rgba(255,59,48,0.1);border:1px solid rgba(255,59,48,0.3);border-radius:12px;padding:10px 12px;">
+        <div style="font-size:11px;font-weight:800;color:var(--danger);margin-bottom:2px;">10. ⚠️ Precautions, Contraindications &amp; Mistakes</div>
+        <div style="color:var(--txt2);">${data.precautions}</div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:800;color:var(--acc);margin-bottom:2px;">11. 📈 Progression Guidelines (Beginner → Advanced)</div>
+        <div style="color:var(--txt2);">${data.progression}</div>
+      </div>
+    `;
+  }
+
+  const modal = document.getElementById("prana-guide-modal");
+  if (modal) modal.classList.add("show");
+
+  // Automatically start reading guide text out loud for selected practice
+  speakClassicalGuideText(data);
+}
+
+function closePranaGuideModal() {
+  stopClassicalGuideSpeech();
+  const modal = document.getElementById("prana-guide-modal");
+  if (modal) modal.classList.remove("show");
+  resumePranaFromGuideSpeech();
 }
 
 /* ── Init ────────────────────────────────────────────────────── */

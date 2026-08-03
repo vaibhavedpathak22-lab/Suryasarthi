@@ -41,7 +41,7 @@ let cfg = {
   alarmMinute       : 0,
   quoteLang         : "hi",
   daytimeNotifOn    : true,
-  userName          : "Yogi",
+  userName          : "Vaibhav",
   dietType          : "veg",
   dietNotifOn       : true,
   autoShowDietPostGoal: true,
@@ -893,7 +893,8 @@ function finishSession(goalDone) {
     saveAll();
     const todaySets  = todayDone();
     const totalSets  = data.totalAllTime;
-    const msg = "Namaste! Today's target of " + todaySets + " rounds complete and locked. "
+    const name = cfg.userName || "Vaibhav";
+    const msg = "Namaste " + name + "! Today's target of " + todaySets + " rounds complete and locked. "
               + "Take 1 minute rest now. Tap Start Pranayama whenever you are ready.";
     setTimeout(()=>speakText(msg), 800);
 
@@ -2181,7 +2182,7 @@ function openSettings() {
   togSet("tog-daytime-notif", cfg.daytimeNotifOn !== false);
   togSet("tog-diet-notif", cfg.dietNotifOn !== false);
   togSet("tog-auto-diet-post-goal", cfg.autoShowDietPostGoal !== false);
-  const unEl = document.getElementById("cfg-user-name"); if(unEl) unEl.value = cfg.userName || "Yogi";
+  const unEl = document.getElementById("cfg-user-name"); if(unEl) unEl.value = cfg.userName || "Vaibhav";
   const dtEl = document.getElementById("cfg-diet-type"); if(dtEl) dtEl.value = cfg.dietType || "veg";
   const qlEl = document.getElementById("cfg-quote-lang"); if(qlEl) qlEl.value = cfg.quoteLang || cfg.pranaLang || "hi";
   document.getElementById("cfg-alarm-time").value =
@@ -2212,7 +2213,7 @@ function closeSettings() {
   cfg.daytimeNotifOn   = togGet("tog-daytime-notif");
   cfg.dietNotifOn      = togGet("tog-diet-notif");
   cfg.autoShowDietPostGoal = togGet("tog-auto-diet-post-goal");
-  const unEl2 = document.getElementById("cfg-user-name"); if(unEl2) cfg.userName = unEl2.value.trim() || "Yogi";
+  const unEl2 = document.getElementById("cfg-user-name"); if(unEl2) cfg.userName = unEl2.value.trim() || "Vaibhav";
   const dtEl2 = document.getElementById("cfg-diet-type"); if(dtEl2) cfg.dietType = dtEl2.value || "veg";
   const aTime = document.getElementById("cfg-alarm-time").value || "05:00";
   const [aH, aM] = aTime.split(":").map(Number);
@@ -2819,8 +2820,9 @@ function checkMorningGreeting() {
   const diffMin = (now - alarmToday) / 60000;
   if(diffMin >= 0 && diffMin <= 60) {
     const goal = todayGoal();
+    const name = cfg.userName || "Vaibhav";
     setTimeout(()=>speakText(
-      "Good morning! Time for Surya Namaskara. " +
+      "Good morning " + name + "! Time for Surya Namaskara. " +
       "Today's target is " + goal + " rounds. Om Mitraya Namaha."
     ), 1000);
   }
@@ -3945,7 +3947,7 @@ function getDietPlanForCurrentState(mealTypeOverride, dietPrefOverride) {
   const dietPref = dietPrefOverride || (cfg.dietType === "nonveg" ? "nonveg" : "veg");
   const mealObj = dailyMenu[mealType][dietPref];
   const metrics = calcAyurvedicHydrationAndProtein();
-  const name = cfg.userName || "Yogi";
+  const name = cfg.userName || "Vaibhav";
 
   const lang = cfg.quoteLang || cfg.pranaLang || "hi";
   let speechText = mealObj.speech[lang] || mealObj.speech.hi;
@@ -3990,7 +3992,7 @@ function logWaterGlass() {
   if (!voiceMuted && window.speechSynthesis && typeof SpeechSynthesisUtterance !== "undefined") {
     qClear();
     try {
-      const name = cfg.userName || "Yogi";
+      const name = cfg.userName || "Vaibhav";
       const u = new SpeechSynthesisUtterance(`Great job ${name}! 1 glass logged. You have completed ${logged} of ${target} target glasses today.`);
       u.rate = 0.95; u.lang = "en-IN";
       qSpeak(u);
@@ -4320,7 +4322,7 @@ function triggerWaterHydrationNotification() {
   if (cfg.dietNotifOn === false) return;
   const metrics = calcAyurvedicHydrationAndProtein();
   const logged = getWaterLoggedToday();
-  const name = cfg.userName || "Yogi";
+  const name = cfg.userName || "Vaibhav";
 
   const msg = `💧 Hydration Check ${name}! Drink 1 glass of water now for optimal muscle recovery post Surya Namaskara (${logged}/${metrics.glasses} Glasses logged).`;
 

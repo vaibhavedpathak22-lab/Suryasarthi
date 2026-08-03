@@ -149,8 +149,8 @@ Provides a structured 35-minute (35:00 / 2,100 seconds) guided breathwork and me
   Inside the modal, an interactive horizontal tab selector bar (`[1. Dirgha]`, `[2. Kapalabhati]`, `[3. Bhastrika]`, `[4. Anulom Vilom]`, `[5. Nadi Shodhana]`, `[6. Ujjayi]`, `[7. Bhramari]`, `[8. Dhyana]`) allows switching to inspect and listen to any of the 8 Pranayama practices separately.
 - **Voice Audio Guidance & Round Freeze**:
   Tapping any practice tab loads the 11-point Classical Yoga & Ayurveda guide and reads it out loud. Background Pranayama rounds automatically freeze (`📖 Guide Speaking — Round Paused`) while the guide voice is speaking and resume when finished or closed.
-- **Default User Name "Vaibhav" & Personalized Voice Audio**:
-  Default `cfg.userName` set to `"Vaibhav"`. Users can edit and save any custom name in Settings (`#cfg-user-name`). All voice announcements (morning alarm greeting, target completion audio, diet meal plans, water hydration logger) address the user directly by name (e.g. *"Good morning Vaibhav!"*, *"Namaste Vaibhav! Today's target complete..."*, *"Great job Vaibhav!"*).
+- **Fixed Set Android Alarm Intent Launcher**:
+  Tapping **"Set Android Alarm"** in Settings uses an updated Android intent bridge (`SKIP_UI=false`) with user name parameter (`Suryasarthi 108 - Vaibhav`). It opens the Android Clock app with alarm time pre-filled for user confirmation. Fallback alerts and notifications ensure cross-platform compatibility on all devices.
 - **Strict Diet & Hydration Visibility Locking**:
   The **"Today's Ayurvedic Diet & Hydration"** section (`#card-view-diet-plan`) is completely hidden (`display: none`) from the main screen during incomplete practice and initial Pranayama execution. It appears (`display: flex`) strictly when:
   1. Today's goal AND the 8th/last type of Pranayama are finished (`endPranayama()`), OR

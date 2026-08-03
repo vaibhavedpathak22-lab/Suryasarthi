@@ -890,9 +890,7 @@ footer p{font-size:9.5px;color:var(--muted)}
       <label style="font-size:11px;color:var(--muted)">
         Tap to set real Android alarm in Clock app
       </label>
-      <button onclick="setAndroidAlarm(cfg.alarmHour||5,cfg.alarmMinute||0);
-        this.textContent='✓ Opening Clock…';
-        setTimeout(()=>this.textContent='Set Android Alarm',3000)"
+      <button onclick="const aVal=(document.getElementById('cfg-alarm-time')?document.getElementById('cfg-alarm-time').value:'05:00')||'05:00'; const [aH,aM]=aVal.split(':').map(Number); setAndroidAlarm(aH,aM); this.textContent='✓ Opening Clock…'; setTimeout(()=>this.textContent='Set Android Alarm',3000)"
         style="background:var(--acc-dim);border:1px solid var(--acc);
                color:var(--acc-lt);border-radius:8px;padding:6px 10px;
                font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">

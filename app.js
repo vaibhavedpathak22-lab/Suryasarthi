@@ -2914,24 +2914,42 @@ function scheduleAlarm() {
 }
 
 function _tryAndroidAlarm(h, m) {
-  // Works on Android Chrome when app is installed as PWA (Add to Home Screen)
-  try {
-    const intent = "intent://alarm#Intent;" +
-      "action=android.intent.action.SET_ALARM;" +
-      "extra.android.intent.extra.alarm.HOUR=" + h + ";" +
-      "extra.android.intent.extra.alarm.MINUTES=" + m + ";" +
-      "extra.android.intent.extra.alarm.MESSAGE=" +
-        encodeURIComponent("वैभव - सूर्यसारथी.१ॐ८") + ";" +
-      "extra.android.intent.extra.alarm.SKIP_UI=true;" +
-      "extra.android.intent.extra.alarm.VIBRATE=true;" +
-      "end";
-    const a = document.createElement("a");
-    a.href = intent; a.style.display = "none";
-    document.body.appendChild(a); a.click();
-    document.body.removeChild(a);
-  } catch(e) {
-    // Silently ignore if not supported
+  const hour = parseInt(h !== undefined ? h : (cfg.alarmHour || 5));
+  const min  = parseInt(m !== undefined ? m : (cfg.alarmMinute || 0));
+  const name = cfg.userName || "Vaibhav";
+  const label = "Suryasarthi 108 - " + name;
+
+  const setAlarmIntent = `intent:#Intent;action=android.intent.action.SET_ALARM;i.android.intent.extra.alarm.HOUR=${hour};i.android.intent.extra.alarm.MINUTES=${min};S.android.intent.extra.alarm.MESSAGE=${encodeURIComponent(label)};B.android.intent.extra.alarm.SKIP_UI=false;B.android.intent.extra.alarm.VIBRATE=true;end`;
+
+  const legacyIntent = `intent://alarm#Intent;action=android.intent.action.SET_ALARM;extra.android.intent.extra.alarm.HOUR=${hour};extra.android.intent.extra.alarm.MINUTES=${min};extra.android.intent.extra.alarm.MESSAGE=${encodeURIComponent(label)};extra.android.intent.extra.alarm.SKIP_UI=false;extra.android.intent.extra.alarm.VIBRATE=true;end`;
+
+  const isAndroid = /android/i.test(navigator.userAgent || "");
+
+  if (isAndroid) {
+    try {
+      const a = document.createElement("a");
+      a.href = setAlarmIntent;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        if (document.body.contains(a)) document.body.removeChild(a);
+      }, 1000);
+    } catch (e) {
+      try { window.location.href = setAlarmIntent; } catch(err) {
+        try { window.location.href = legacyIntent; } catch(err2) {}
+      }
+    }
   }
+
+  const timeStr = String(hour).padStart(2, '0') + ":" + String(min).padStart(2, '0');
+  const alertMsg = isAndroid
+    ? `⏰ Opening Android Clock App for ${timeStr}!\n\nConfirm the pre-filled alarm in your Clock app so it rings every morning for your practice.`
+    : `⏰ Suryasarthi 108 Alarm set for ${timeStr} daily!\n\nKeep app or browser open for automatic daily morning reminders.`;
+
+  setTimeout(() => {
+    alert(alertMsg);
+  }, 300);
 }
 
 function cancelAlarm() {

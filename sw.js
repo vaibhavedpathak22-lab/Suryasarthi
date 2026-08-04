@@ -60,3 +60,25 @@ self.addEventListener("fetch", e => {
 self.addEventListener("message", e => {
   if(e.data === "skipWaiting") self.skipWaiting();
 });
+
+// Lockscreen System Notification Click & Action Handler
+self.addEventListener("notificationclick", e => {
+  e.notification.close();
+  const action = e.action;
+  const data = e.notification.data || {};
+
+  e.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then(clientList => {
+      for (let client of clientList) {
+        if ("focus" in client) {
+          client.focus();
+          client.postMessage({ type: "NOTIFICATION_CLICK", action: action, data: data });
+          return;
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow("./?notif_action=" + (action || data.type || "water"));
+      }
+    })
+  );
+});

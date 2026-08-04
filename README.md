@@ -33,11 +33,13 @@
 
 The Core Practice Engine governs the physical execution of Surya Namaskara, supporting 12 dynamic poses, customizable pace, smart goal scaling, and rest intervals.
 
-- **Customizable Water Bottle Container Selection & Bottle Count Tracking**:
-  Users can choose their preferred water bottle capacity inside Settings & Diet Modal (`250ml Glass`, `300ml Small Bottle`, `500ml Medium Bottle`, `750ml Sports Bottle`, `1000ml / 1 L Bottle`).
-  - Target bottle count is dynamically calculated:
-    $$\text{Target Bottles} = \text{Math.ceil}\left(\frac{\text{Daily Water Needed (ml)}}{\text{Bottle Capacity (ml)}}\right)$$
-  - For example, a 2.8 L target with a **1 Liter Bottle** displays: `2.8 L (3 Bottles of 1 L)`, tracks real-time bottle progress (`1 / 3 Bottles`), and provides tailored TTS voice confirmations (`"Great job! 1 bottle confirmed (1 Liter)"`).
+- **1-Tap Quick Water Logging (`quickLogWaterAndSpeak()`) & Live Progress Widget**:
+  Prominent **"💧 +1 Drink Water"** single-click button on the main dashboard card (`#card-view-diet-plan`) allows logging water intake in 1 click without opening any modal.
+  - Live progress bar (`#card-water-progress-bar`) and text status (`#card-water-quick-status`) update instantly on the main screen.
+  - Plays motivational TTS voice confirmation upon click (*"Great job Vaibhav! 1 bottle confirmed (1 Liter). You have logged 1 of 3 target bottles today."*).
+- **Lockscreen & Closed-App System Notification Popups**:
+  - Scheduled hydration reminders (10 AM, 12 PM, 3 PM, 5 PM, 8 PM) dispatch system notification popups with inline action buttons (`💧 +1 Bottle Confirmed`, `🥗 View Tracker`).
+  - Tapping the notification or action button on the lockscreen opens/focuses the app, logs the bottle, and speaks motivational TTS speech!
 
 ### 🟢 Basic Features:
 - **12 Authentic Poses**:

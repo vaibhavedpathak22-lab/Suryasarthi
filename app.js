@@ -4018,7 +4018,7 @@ function getDietPlanForCurrentState(mealTypeOverride, dietPrefOverride) {
   const h = now.getHours();
   let mealType = mealTypeOverride;
 
-  if (!mealType) {
+  if (!mealType || mealType === "water") {
     if (h >= 5 && h < 11) mealType = "breakfast";
     else if (h >= 11 && h < 16) mealType = "lunch";
     else mealType = "dinner";
@@ -4026,12 +4026,23 @@ function getDietPlanForCurrentState(mealTypeOverride, dietPrefOverride) {
 
   activeDietMealType = mealType;
 
-  // Day of year calculation for non-repeating 7-day rotating menu
-  const startOfYear = new Date(now.getFullYear(), 0, 0);
-  const diff = now - startOfYear;
-  const oneDay = 1000 * 60 * 60 * 24;
-  const dayOfYear = Math.floor(diff / oneDay);
-  const dayIdx = dayOfYear % 7;
+  // Real Day of Week calculation: Mon=0, Tue=1, Wed=2, Thu=3, Fri=4, Sat=5, Sun=6
+  const dayOfWeek = now.getDay();
+  const dayIdx = dayOfWeek === 0 ? 6 : (dayOfWeek - 1);
+
+  const daysEn = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const daysHi = ["रविवार", "सोमवार", "मंगलवार", "बुधवार", "गुरुवार", "शुक्रवार", "शनिवार"];
+  const daysMr = ["रविवार", "सोमवार", "मंगळवार", "बुधवार", "गुरूवार", "शुक्रवार", "शनिवार"];
+
+  const monthsEn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const monthsHi = ["जनवरी", "फरवरी", "मार्च", "अप्रैल", "मई", "जून", "जुलाई", "अगस्त", "सितंबर", "अक्टूबर", "नवंबर", "दिसंबर"];
+
+  const dateNum = now.getDate();
+  const monthIdx = now.getMonth();
+  const timeFmt = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  const dateStrEn = `${daysEn[dayOfWeek]}, ${dateNum} ${monthsEn[monthIdx]} · ${timeFmt}`;
+  const dateStrHi = `${daysHi[dayOfWeek]}, ${dateNum} ${monthsHi[monthIdx]} · ${timeFmt}`;
 
   const dailyMenu = AYURVEDIC_DIET_PLAN_7DAYS[dayIdx];
   const dietPref = dietPrefOverride || (cfg.dietType === "nonveg" ? "nonveg" : "veg");
@@ -4041,7 +4052,14 @@ function getDietPlanForCurrentState(mealTypeOverride, dietPrefOverride) {
 
   const lang = cfg.quoteLang || cfg.pranaLang || "hi";
   let speechText = mealObj.speech[lang] || mealObj.speech.hi;
-  speechText = speechText
+
+  const dateTimeIntro = lang === "hi"
+    ? `आज ${daysHi[dayOfWeek]}, ${dateNum} ${monthsHi[monthIdx]} को समय ${timeFmt}। `
+    : lang === "mr"
+    ? `आज ${daysMr[dayOfWeek]}, ${dateNum} ${monthsHi[monthIdx]} वेळ ${timeFmt}। `
+    : `Today is ${daysEn[dayOfWeek]}, ${dateNum} ${monthsEn[monthIdx]} at ${timeFmt}. `;
+
+  speechText = dateTimeIntro + speechText
     .replace(/{NAME}/g, name)
     .replace(/{SETS}/g, metrics.sets)
     .replace(/{WATER}/g, metrics.waterLiters)
@@ -4050,6 +4068,7 @@ function getDietPlanForCurrentState(mealTypeOverride, dietPrefOverride) {
   return {
     mealType,
     dayName: dailyMenu.dayName,
+    dateStr: lang === "hi" ? dateStrHi : dateStrEn,
     mealBadge: dailyMenu[mealType].mealBadge,
     dietPref,
     title: mealObj.title,
@@ -4121,6 +4140,11 @@ function logWaterGlass() {
   }
 }
 
+function quickLogWaterAndSpeak() {
+  logWaterGlass();
+}
+window.quickLogWaterAndSpeak = quickLogWaterAndSpeak;
+
 function updateWaterTrackerUI() {
   const metrics = calcAyurvedicHydrationAndProtein();
   const logged = getWaterLoggedToday();
@@ -4154,6 +4178,16 @@ function updateWaterTrackerUI() {
 
   const gbEl = document.getElementById("water-goal-badge");
   if (gbEl) gbEl.style.display = logged >= target ? "block" : "none";
+
+  // Sync main dashboard card widgets
+  const cqsEl = document.getElementById("card-water-quick-status");
+  if (cqsEl) {
+    cqsEl.textContent = `💧 ${logged} / ${target} ${unitName} (${metrics.waterLiters}L Goal)`;
+  }
+  const cpbEl = document.getElementById("card-water-progress-bar");
+  if (cpbEl) {
+    cpbEl.style.width = pct + "%";
+  }
 }
 
 let currentDietTabMode = "both";
@@ -4163,10 +4197,8 @@ function renderFullDayDietPlan() {
   if (!container) return;
 
   const now = new Date();
-  const startOfYear = new Date(now.getFullYear(), 0, 0);
-  const diff = now - startOfYear;
-  const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const dayIdx = dayOfYear % 7;
+  const dayOfWeek = now.getDay();
+  const dayIdx = dayOfWeek === 0 ? 6 : (dayOfWeek - 1);
   const dailyMenu = AYURVEDIC_DIET_PLAN_7DAYS[dayIdx];
 
   const meals = [
@@ -4312,7 +4344,44 @@ function switchDietTab(mode) {
   speakCurrentDietNotification();
 }
 
-function showDietModal(mealTypeOverride) {
+function speakWaterHydrationStatus() {
+  if (voiceMuted || !window.speechSynthesis || typeof SpeechSynthesisUtterance === "undefined") return;
+  const metrics = calcAyurvedicHydrationAndProtein();
+  const logged = getWaterLoggedToday();
+  const target = metrics.targetContainers;
+  const remaining = Math.max(0, target - logged);
+  const name = cfg.userName || "Vaibhav";
+  const lang = cfg.quoteLang || cfg.pranaLang || "hi";
+
+  qClear();
+  try {
+    const unitStr = metrics.bottleMl >= 1000 ? `${metrics.bottleMl / 1000} Liter bottles` : `${metrics.bottleMl} ml glasses`;
+    let speechMsg = "";
+
+    if (logged >= target) {
+      speechMsg = lang === "hi"
+        ? `नमस्ते ${name}! आपने आज का जल लक्ष्य ${metrics.waterLiters} लीटर (${target} ${metrics.bottleMl >= 1000 ? "बोतल" : "ग्लास"}) 100% पूरा कर लिया है! बहुत बढ़िया!`
+        : lang === "mr"
+        ? `नमस्ते ${name}! आपण आजचे पाणी लक्ष्य ${metrics.waterLiters} लीटर पूर्ण केले आहे! खूप छान!`
+        : `Namaste ${name}! You have completed 100% of your daily ${metrics.waterLiters} Liters hydration goal with ${target} ${unitStr}. Excellent job staying hydrated!`;
+    } else {
+      speechMsg = lang === "hi"
+        ? `नमस्ते ${name}! आपका जल लक्ष्य ${metrics.waterLiters} लीटर है। अब तक ${logged} ${metrics.bottleMl >= 1000 ? "बोतल" : "ग्लास"} दर्ज हुए हैं, और ${remaining} बाकी हैं। पानी पिएं और तरोताज़ा रहें!`
+        : lang === "mr"
+        ? `नमस्ते ${name}! तुमचे पाणी लक्ष्य ${metrics.waterLiters} लीटर आहे. आतापर्यंत ${logged} पूर्ण, ${remaining} बाकी आहेत.`
+        : `Namaste ${name}! Your daily water target is ${metrics.waterLiters} Liters. You have logged ${logged} ${unitStr} today, with ${remaining} remaining. Remember to stay hydrated!`;
+    }
+
+    const u = new SpeechSynthesisUtterance(speechMsg);
+    u.rate = 0.95;
+    if (lang === "en") u.lang = "en-IN";
+    else u.lang = "hi-IN";
+    qSpeak(u);
+  } catch (e) {}
+}
+window.speakWaterHydrationStatus = speakWaterHydrationStatus;
+
+function showDietModal(mealTypeOverride, mode = "diet") {
   // If settings drawer is open, close it cleanly
   const dr = document.getElementById("dr");
   if (dr && dr.classList.contains("show")) {
@@ -4347,8 +4416,14 @@ function showDietModal(mealTypeOverride) {
     modal.classList.add("show");
   }
 
-  // AUTO-PLAY PERSONALIZED VOICE ON DIET MODAL OPEN
-  setTimeout(() => speakCurrentDietNotification(planObj), 400);
+  // AUTO-PLAY APPROPRIATE VOICE ON OPEN
+  setTimeout(() => {
+    if (mode === "water" || mealTypeOverride === "water") {
+      speakWaterHydrationStatus();
+    } else {
+      speakCurrentDietNotification(planObj);
+    }
+  }, 400);
 }
 
 function closeDietModal() {
@@ -4475,33 +4550,59 @@ function triggerWaterHydrationNotification() {
   if (cfg.dietNotifOn === false) return;
   const metrics = calcAyurvedicHydrationAndProtein();
   const logged = getWaterLoggedToday();
+  const target = metrics.targetContainers;
+  const unitName = metrics.bottleMl >= 1000 ? "bottle" : "glass";
+  const unitPlural = metrics.bottleMl >= 1000 ? "bottles" : "glasses";
   const name = cfg.userName || "Vaibhav";
+  const lang = cfg.quoteLang || cfg.pranaLang || "hi";
 
-  const msg = `💧 Hydration Check ${name}! Drink 1 glass of water now for optimal muscle recovery post Surya Namaskara (${logged}/${metrics.glasses} Glasses logged).`;
+  const msg = lang === "hi"
+    ? `💧 हाइड्रेशन रिमांडर ${name}! अपनी ऊर्जा और स्वास्थ्य के लिए 1 ${unitName} पानी पिएं (${logged}/${target} ${unitPlural} पूर्ण)। दर्ज़ करने के लिए क्लिक करें!`
+    : `💧 Hydration Reminder ${name}! Time to drink 1 ${unitName} of water (${logged}/${target} ${unitPlural} logged). Tap to confirm 1 ${unitName}!`;
 
   if ("Notification" in window && Notification.permission === "granted") {
     try {
-      const n = new Notification("💧 Water Intake Hydration Reminder · " + name, {
-        body: msg,
-        icon: "./icon-192.png",
-        badge: "./icon-192.png",
-        tag: "surya-water-notif",
-        renotify: true,
-        vibrate: [200, 100, 200]
-      });
-      n.onclick = () => {
-        try { window.focus(); } catch (e) {}
-        showDietModal();
-        n.close();
-      };
+      if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+        navigator.serviceWorker.ready.then(reg => {
+          reg.showNotification(`💧 Water Hydration Check · ${name}`, {
+            body: msg,
+            icon: "./icon-192.png",
+            badge: "./icon-192.png",
+            tag: "surya-water-notif",
+            renotify: true,
+            vibrate: [200, 100, 200],
+            data: { type: "water" },
+            actions: [
+              { action: "log_water", title: "💧 +1 " + (metrics.bottleMl >= 1000 ? "Bottle" : "Glass") + " Confirmed" },
+              { action: "view_diet", title: "🥗 View Tracker" }
+            ]
+          });
+        });
+      } else {
+        const n = new Notification("💧 Water Hydration Check · " + name, {
+          body: msg,
+          icon: "./icon-192.png",
+          badge: "./icon-192.png",
+          tag: "surya-water-notif",
+          renotify: true,
+          vibrate: [200, 100, 200]
+        });
+        n.onclick = () => {
+          try { window.focus(); } catch (e) {}
+          quickLogWaterAndSpeak();
+          n.close();
+        };
+      }
     } catch (e) { console.warn("Notification error:", e); }
   }
 
+  // Voice speech if app visible or active
   if (document.visibilityState === "visible" && !voiceMuted && window.speechSynthesis && typeof SpeechSynthesisUtterance !== "undefined") {
     qClear();
     try {
       const u = new SpeechSynthesisUtterance(msg);
-      u.rate = 0.95; u.lang = "en-IN";
+      u.rate = 0.95;
+      u.lang = lang === "en" ? "en-IN" : "hi-IN";
       qSpeak(u);
     } catch (e) {}
   }
@@ -5597,3 +5698,26 @@ scheduleAyurvedicDietNotifications(); // schedule Ayurvedic diet notifications
 scheduleWaterIntakeReminders(); // schedule 2-hourly water hydration reminders
 checkSubscriptionReminder();
 checkAppLockState();
+
+/* ── SW Lockscreen Notification Click Handler ────────────────── */
+if (typeof navigator !== "undefined" && navigator.serviceWorker) {
+  navigator.serviceWorker.addEventListener("message", e => {
+    if (e.data && e.data.type === "NOTIFICATION_CLICK") {
+      if (e.data.action === "log_water") {
+        quickLogWaterAndSpeak();
+      } else {
+        showDietModal("water", "water");
+      }
+    }
+  });
+}
+
+try {
+  const urlParams = new URLSearchParams(window.location.search);
+  const actionParam = urlParams.get("notif_action");
+  if (actionParam === "log_water") {
+    setTimeout(() => quickLogWaterAndSpeak(), 800);
+  } else if (actionParam === "water" || actionParam === "view_diet") {
+    setTimeout(() => showDietModal("water", "water"), 800);
+  }
+} catch (e) {}

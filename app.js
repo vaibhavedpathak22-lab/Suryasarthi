@@ -2385,10 +2385,13 @@ function checkMidnightRollover() {
 
     saveAll();
     render();
+    updateWaterTrackerUI(); // Reset water tracker & unlock +1 Drink Water button at 12 AM Midnight!
     updateClockDisplay();
     console.log("12 AM Midnight rollover complete | Date:", today, "| Today Goal:", newG);
   }
 }
+window.checkMidnightRollover = checkMidnightRollover;
+window.scheduleMidnightRollover = scheduleMidnightRollover;
 
 function scheduleMidnightRollover() {
   if(_midnightTimer) { clearTimeout(_midnightTimer); _midnightTimer = null; }
@@ -4095,17 +4098,39 @@ function changeWaterBottleSize(newMl) {
 window.changeWaterBottleSize = changeWaterBottleSize;
 
 function logWaterGlass() {
-  if (!data.waterLogs) data.waterLogs = {};
-  const tk = todayKey();
-  data.waterLogs[tk] = (data.waterLogs[tk] || 0) + 1;
-  saveAll();
-
   const metrics = calcAyurvedicHydrationAndProtein();
-  const logged = data.waterLogs[tk];
+  const tk = todayKey();
+  if (!data.waterLogs) data.waterLogs = {};
+  const currentLogged = data.waterLogs[tk] || 0;
   const target = metrics.targetContainers;
-  const remaining = Math.max(0, target - logged);
   const name = cfg.userName || "Vaibhav";
   const lang = cfg.quoteLang || cfg.pranaLang || "hi";
+
+  // If goal is ALREADY completed, notify user and prevent over-incrementing
+  if (currentLogged >= target) {
+    updateWaterTrackerUI();
+    vib([40, 40]);
+    if (!voiceMuted && window.speechSynthesis && typeof SpeechSynthesisUtterance !== "undefined") {
+      qClear();
+      try {
+        const msg = lang === "hi"
+          ? `बधाई हो ${name}! आपने आज का 100% जल लक्ष्य पहले ही पूरा कर लिया है! कल 12 बजे मध्यरात्रि के बाद अगला लक्ष्य शुरू होगा।`
+          : `Congratulations ${name}! You have already completed 100% of your daily water goal for today. Next goal unlocks at 12 AM midnight!`;
+        const u = new SpeechSynthesisUtterance(msg);
+        u.rate = 0.95;
+        u.lang = lang === "en" ? "en-IN" : "hi-IN";
+        qSpeak(u);
+      } catch (e) {}
+    }
+    return;
+  }
+
+  // Increment water log
+  data.waterLogs[tk] = currentLogged + 1;
+  saveAll();
+
+  const logged = data.waterLogs[tk];
+  const remaining = Math.max(0, target - logged);
 
   updateWaterTrackerUI();
 
@@ -4121,8 +4146,8 @@ function logWaterGlass() {
         speechMsg = lang === "hi"
           ? `बधाई हो ${name}! आपने आज का 100% जल लक्ष्य ${metrics.waterLiters} लीटर (${target} ${metrics.bottleMl >= 1000 ? "बोतल" : "ग्लास"}) पूरा कर लिया है! उत्कृष्ट कार्य!`
           : lang === "mr"
-          ? `अभिनंदन ${name}! आपण आजचे १००% पाणी लक्ष्य ${metrics.waterLiters} लीटर (${target} ${metrics.bottleMl >= 1000 ? "बाटल्या" : "पेल्या"}) पूर्ण केले आहे! खूप छान!`
-          : `Congratulations ${name}! You have completed 100% of your daily ${metrics.waterLiters} Liters hydration goal with ${target} ${unitPlural}! Outstanding dedication to stay fit, healthy, and energized!`;
+          ? `अभिनंदन ${name}! आपण आजचे १००% पाणी लक्ष्य ${metrics.waterLiters} लीटर पूर्ण केले आहे! खूप छान!`
+          : `Congratulations ${name}! You have completed 100% of your daily ${metrics.waterLiters} Liters hydration goal with ${target} ${unitPlural}! Water button locked for today and will unlock at 12 AM midnight. Excellent work!`;
       } else {
         speechMsg = lang === "hi"
           ? `बहुत बढ़िया ${name}! 1 ${unitStr} दर्ज हुआ। आज ${logged} पूर्ण, ${remaining} ${unitPlural} बाकी हैं।`
@@ -4163,11 +4188,6 @@ function updateWaterTrackerUI() {
     wgEl.textContent = `(${target} ${unitName} of ${metrics.containerLabel})`;
   }
 
-  const btnEl = document.getElementById("log-water-btn-text");
-  if (btnEl) {
-    btnEl.textContent = `💧 +1 ${metrics.containerLabel} Confirmed`;
-  }
-
   const msEl = document.getElementById("modal-bottle-size");
   if (msEl && cfg.bottleMl) msEl.value = cfg.bottleMl;
   const bsEl = document.getElementById("cfg-bottle-size");
@@ -4182,11 +4202,64 @@ function updateWaterTrackerUI() {
   // Sync main dashboard card widgets
   const cqsEl = document.getElementById("card-water-quick-status");
   if (cqsEl) {
-    cqsEl.textContent = `💧 ${logged} / ${target} ${unitName} (${metrics.waterLiters}L Goal)`;
+    cqsEl.textContent = logged >= target
+      ? `🎉 Goal Completed! ${logged} / ${target} ${unitName} (${metrics.waterLiters}L)`
+      : `💧 ${logged} / ${target} ${unitName} (${metrics.waterLiters}L Goal)`;
   }
   const cpbEl = document.getElementById("card-water-progress-bar");
   if (cpbEl) {
     cpbEl.style.width = pct + "%";
+  }
+
+  // 🔒 Lock / Unlock +1 Drink Water buttons when today's goal is reached (Resets at 12 AM Midnight)
+  const isGoalReached = logged >= target;
+
+  const btnModalText = document.getElementById("log-water-btn-text");
+  const btnModal = (btnModalText && typeof btnModalText.closest === "function") ? btnModalText.closest("button") : document.getElementById("log-water-btn");
+  const btnQuick = document.getElementById("btn-quick-log-water");
+
+  if (isGoalReached) {
+    // Locked State (Goal Completed)
+    if (btnModalText) btnModalText.textContent = `🎉 Water Goal Completed!`;
+    if (btnModal) {
+      btnModal.disabled = true;
+      btnModal.style.opacity = "0.75";
+      btnModal.style.cursor = "not-allowed";
+      btnModal.style.background = "rgba(255,215,0,0.2)";
+      btnModal.style.border = "1px solid #FFD700";
+      btnModal.style.color = "#FFD700";
+    }
+    if (btnQuick) {
+      btnQuick.innerHTML = `🎉 Goal Completed!`;
+      btnQuick.disabled = true;
+      btnQuick.style.opacity = "0.75";
+      btnQuick.style.cursor = "not-allowed";
+      btnQuick.style.background = "rgba(255,215,0,0.2)";
+      btnQuick.style.border = "1px solid #FFD700";
+      btnQuick.style.color = "#FFD700";
+      btnQuick.style.boxShadow = "none";
+    }
+  } else {
+    // Unlocked Active State (Goal Pending)
+    if (btnModalText) btnModalText.textContent = `💧 +1 ${metrics.containerLabel} Confirmed`;
+    if (btnModal) {
+      btnModal.disabled = false;
+      btnModal.style.opacity = "1";
+      btnModal.style.cursor = "pointer";
+      btnModal.style.background = "var(--acc)";
+      btnModal.style.border = "none";
+      btnModal.style.color = "#06231A";
+    }
+    if (btnQuick) {
+      btnQuick.innerHTML = `💧 +1 Drink Water`;
+      btnQuick.disabled = false;
+      btnQuick.style.opacity = "1";
+      btnQuick.style.cursor = "pointer";
+      btnQuick.style.background = "var(--acc)";
+      btnQuick.style.border = "none";
+      btnQuick.style.color = "#06231A";
+      btnQuick.style.boxShadow = "0 2px 8px rgba(29,184,127,0.3)";
+    }
   }
 }
 
@@ -4623,6 +4696,8 @@ navigator.serviceWorker && navigator.serviceWorker.addEventListener("message", e
     speakText("Good morning! Today target is " + goal + " rounds. Om.");
   }
 });
+
+
 
 // ── UNIFIED visibilitychange — one handler, no duplicates ──────
 document.addEventListener("visibilitychange", async () => {
@@ -5689,6 +5764,7 @@ function closePranaGuideModal() {
 loadAll();
 saveAll();
 render();
+updateWaterTrackerUI();
 updateClockDisplay();
 scheduleMidnightRollover(); // schedule goal unlock at 12:00 AM Midnight
 scheduleAlarm();            // schedule 5 AM alarm

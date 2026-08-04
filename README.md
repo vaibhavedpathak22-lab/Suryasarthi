@@ -33,10 +33,11 @@
 
 The Core Practice Engine governs the physical execution of Surya Namaskara, supporting 12 dynamic poses, customizable pace, smart goal scaling, and rest intervals.
 
-- **1-Tap Quick Water Logging (`quickLogWaterAndSpeak()`) & Live Progress Widget**:
+- **1-Tap Quick Water Logging (`quickLogWaterAndSpeak()`) & 100% Goal Locking**:
   Prominent **"💧 +1 Drink Water"** single-click button on the main dashboard card (`#card-view-diet-plan`) allows logging water intake in 1 click without opening any modal.
+  - **100% Goal Completion Locking**: Once today's water target is completed (`logged >= target`), the button automatically locks into a golden **`🎉 Water Goal Completed!`** badge, disabling further clicks and playing celebratory TTS speech if clicked.
+  - **12:00 AM Midnight Auto-Unlock**: On date rollover at 12 AM Midnight (`scheduleMidnightRollover()`), the tracker resets for the new date and unlocks the **"💧 +1 Drink Water"** button for your next day's practice!
   - Live progress bar (`#card-water-progress-bar`) and text status (`#card-water-quick-status`) update instantly on the main screen.
-  - Plays motivational TTS voice confirmation upon click (*"Great job Vaibhav! 1 bottle confirmed (1 Liter). You have logged 1 of 3 target bottles today."*).
 - **Lockscreen & Closed-App System Notification Popups**:
   - Scheduled hydration reminders (10 AM, 12 PM, 3 PM, 5 PM, 8 PM) dispatch system notification popups with inline action buttons (`💧 +1 Bottle Confirmed`, `🥗 View Tracker`).
   - Tapping the notification or action button on the lockscreen opens/focuses the app, logs the bottle, and speaks motivational TTS speech!

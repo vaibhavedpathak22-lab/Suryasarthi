@@ -33,6 +33,12 @@
 
 The Core Practice Engine governs the physical execution of Surya Namaskara, supporting 12 dynamic poses, customizable pace, smart goal scaling, and rest intervals.
 
+- **Customizable Water Bottle Container Selection & Bottle Count Tracking**:
+  Users can choose their preferred water bottle capacity inside Settings & Diet Modal (`250ml Glass`, `300ml Small Bottle`, `500ml Medium Bottle`, `750ml Sports Bottle`, `1000ml / 1 L Bottle`).
+  - Target bottle count is dynamically calculated:
+    $$\text{Target Bottles} = \text{Math.ceil}\left(\frac{\text{Daily Water Needed (ml)}}{\text{Bottle Capacity (ml)}}\right)$$
+  - For example, a 2.8 L target with a **1 Liter Bottle** displays: `2.8 L (3 Bottles of 1 L)`, tracks real-time bottle progress (`1 / 3 Bottles`), and provides tailored TTS voice confirmations (`"Great job! 1 bottle confirmed (1 Liter)"`).
+
 ### 🟢 Basic Features:
 - **12 Authentic Poses**:
   1. *Pranamasana* (Prayer Pose) — Inhale/Exhale — Anahata Chakra — *Om Mitraya Namah*
@@ -149,8 +155,8 @@ Provides a structured 35-minute (35:00 / 2,100 seconds) guided breathwork and me
   Inside the modal, an interactive horizontal tab selector bar (`[1. Dirgha]`, `[2. Kapalabhati]`, `[3. Bhastrika]`, `[4. Anulom Vilom]`, `[5. Nadi Shodhana]`, `[6. Ujjayi]`, `[7. Bhramari]`, `[8. Dhyana]`) allows switching to inspect and listen to any of the 8 Pranayama practices separately.
 - **Voice Audio Guidance & Round Freeze**:
   Tapping any practice tab loads the 11-point Classical Yoga & Ayurveda guide and reads it out loud. Background Pranayama rounds automatically freeze (`📖 Guide Speaking — Round Paused`) while the guide voice is speaking and resume when finished or closed.
-- **User-Controlled Practice Start (No Auto-Start Timers)**:
-  The 30-second automated practice start timer has been completely removed from the Gita Shloka modal screen. Users can read and listen to the daily Bhagavad Gita Shloka and Sanskrit recitation, and manually decide when to tap **"Start Surya Namaskara Now"** (`#gita-start-btn`) to begin physical practice whenever they are ready.
+- **Pranayama Step Timer Racing Fix Across All 8 Types**:
+  Resolved duplicate callback scheduling and interval racing that caused Kapalabhati, Bhastrika, Anulom Vilom, Nadi Shodhana, Ujjayi, Bhramari, and Meditation to jump steps rapidly. `startStepExecution()` now invokes `clearPranaTimers()` upfront, and `speakPranaInstruction()` clears safety timeouts to guarantee that every single step across all 8 Pranayama types ticks steadily at 1 second per count without premature termination.
 - **Strict Diet & Hydration Visibility Locking**:
   The **"Today's Ayurvedic Diet & Hydration"** section (`#card-view-diet-plan`) is completely hidden (`display: none`) from the main screen during incomplete practice and initial Pranayama execution. It appears (`display: flex`) strictly when:
   1. Today's goal AND the 8th/last type of Pranayama are finished (`endPranayama()`), OR

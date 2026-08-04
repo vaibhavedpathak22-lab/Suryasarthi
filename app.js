@@ -96,14 +96,29 @@ function fmtTime(ms) {
   return s+"s";
 }
 
-/* ── Calories calculations ───────────────────────────────────── */
-function calcSetCalories(sets, poseSec) {
+/* ── MET & Calories calculations ───────────────────────────── */
+function getMetForPoseSec(poseSec) {
+  const sec = poseSec || cfg.poseSeconds || 5;
+  if(sec <= 3) return 11.5; // Vigorous pace (11–12 MET)
+  if(sec <= 5) return 9.5;  // Moderate-fast pace (9–10 MET)
+  if(sec <= 8) return 7.5;  // Moderate-slow pace (7–8 MET)
+  return 5.5;               // Slow meditative pace (5–6 MET)
+}
+
+function calcSetCalories(sets, poseSec, weightKg) {
   if(!sets || sets <= 0) return 0;
   const sec = poseSec || cfg.poseSeconds || 5;
-  // 1 set (12 poses) at 5s/pose = 13.9 kcal standard benchmark
-  // Intensity scaling: Math.pow(sec / 5, 0.65)
-  const kcalPerSet = 13.9 * Math.pow(sec / 5, 0.65);
-  return sets * kcalPerSet;
+  const weight = weightKg || cfg.userWeight || 66;
+  const met = getMetForPoseSec(sec);
+
+  // Standard MET formula: Calories/min = (MET * 3.5 * Weight) / 200
+  const calPerMin = (met * 3.5 * weight) / 200;
+
+  // Exercise duration in minutes: (sets * 12 poses * sec) / 60
+  const durationMinutes = (sets * 12 * sec) / 60;
+
+  // Total Calories burned
+  return calPerMin * durationMinutes;
 }
 
 function fmtCalories(kcal) {
@@ -115,7 +130,7 @@ function fmtCalories(kcal) {
 
 function todayCalories() {
   const done = todayDone();
-  return calcSetCalories(done, cfg.poseSeconds || 5);
+  return calcSetCalories(done, cfg.poseSeconds || 5, cfg.userWeight || 66);
 }
 
 function totalCalories() {
@@ -125,10 +140,10 @@ function totalCalories() {
     const rec = data.history[k];
     const sets = typeof rec === "number" ? rec : (rec.sets || 0);
     if(sets > 0) {
-      totalFromHistory += calcSetCalories(sets, cfg.poseSeconds || 5);
+      totalFromHistory += calcSetCalories(sets, cfg.poseSeconds || 5, cfg.userWeight || 66);
     }
   });
-  const totalFromAllTime = calcSetCalories(data.totalAllTime || 0, cfg.poseSeconds || 5);
+  const totalFromAllTime = calcSetCalories(data.totalAllTime || 0, cfg.poseSeconds || 5, cfg.userWeight || 66);
   return Math.max(totalFromHistory, totalFromAllTime);
 }
 
@@ -1395,7 +1410,7 @@ const PRANAYAMA_BASE = [
         mr: "३६ जोरात श्वास सोडणे सुरू करा.", dur: 36, action: "stroke", count: 36, label: "💥 Stroke" },
       { en: "Deep inhale, hold briefly, then exhale completely. Rest and breathe normally.",
         hi: "गहरी साँस लें, रोकें, फिर छोड़ें। सामान्य साँस लें।",
-        mr: "खोल श्वास घ्या, थांबा, मग सोडा. सामान्य श्वास घ्या.", dur: 12, action: "rest" }
+        mr: "खोल श्वास घ्या, थांबा, मग सोडा. सामान्य श्वास घ्या.", dur: 12, action: "rest", count: 12, label: "🧘 Rest" }
     ]
   },
   {
@@ -1470,7 +1485,7 @@ const PRANAYAMA_BASE = [
         mr: "डाव्याकडून 8 मोजेपर्यंत सोडा.", dur: 8, action: "exhale", count: 8, label: "👈 Exhale Left" },
       { en: "Rest and take a natural breath.",
         hi: "विराम लें और सामान्य श्वास लें।",
-        mr: "विराम घ्या आणि सामान्य श्वास घ्या.", dur: 4, action: "rest", label: "🧘 Rest" }
+        mr: "विराम घ्या आणि सामान्य श्वास घ्या.", dur: 4, action: "rest", count: 4, label: "🧘 Rest" }
     ]
   },
   {
@@ -1524,7 +1539,7 @@ const PRANAYAMA_BASE = [
         mr: "सर्व तंत्रे सोडा. हात गुडघ्यांवर. डोळे बंद करा.", dur: 10, action: "setup" },
       { en: "Observe your natural breath flow. Rest in pure awareness.",
         hi: "प्राकृतिक श्वास को देखें। शांत रहें।",
-        mr: "नैसर्गिक श्वास पाहा. शांत राहा.", dur: 530, action: "meditate", label: "🧘 Silent Awareness" }
+        mr: "नैसर्गिक श्वास पाहा. शांत राहा.", dur: 530, action: "meditate", count: 530, label: "🧘 Silent Awareness" }
     ]
   }
 ];
@@ -1605,9 +1620,11 @@ function speakPranaInstruction(textOrObj, onDoneCallback) {
   u.rate = 0.95;
 
   let called = false;
+  let safetyTimer = null;
   const finish = () => {
     if(!called) {
       called = true;
+      if(safetyTimer) { clearTimeout(safetyTimer); safetyTimer = null; }
       if(onDoneCallback) setTimeout(onDoneCallback, 300);
     }
   };
@@ -1616,7 +1633,7 @@ function speakPranaInstruction(textOrObj, onDoneCallback) {
   u.onerror = finish;
 
   const safeTimeoutMs = Math.max(6000, text.length * 160);
-  setTimeout(finish, safeTimeoutMs);
+  safetyTimer = setTimeout(finish, safeTimeoutMs);
 
   qSpeak(u);
 }
@@ -1626,8 +1643,6 @@ function speakPranaCount(text) {
   const lang = cfg.pranaLang || "en";
 
   try {
-    // Reset browser speech engine so WebSpeech queue never stalls or pauses
-    try { window.speechSynthesis.cancel(); } catch(e){}
     if (window.speechSynthesis.paused) {
       try { window.speechSynthesis.resume(); } catch(e){}
     }
@@ -1754,10 +1769,11 @@ function startPranaStep() {
 
 function startStepExecution(step, isRound1) {
   if(!pranaState.active || pranaState.paused) return;
+  clearPranaTimers();
 
   const maxCount = step.count || step.dur || 4;
 
-  // Case A: Step with live number counting (Inhale, Hold, Exhale, Stroke)
+  // Case A: Step with live number counting (Inhale, Hold, Exhale, Stroke, Humming)
   if(step.count && step.count > 0) {
     updatePranaGuideLockButton(true); // Lock guide button during running live rounds
     let curSec = 1;
@@ -1769,8 +1785,7 @@ function startStepExecution(step, isRound1) {
       curSec++;
 
       if(curSec > maxCount) {
-        clearInterval(pranaState.countTimer);
-        pranaState.countTimer = null;
+        clearPranaTimers();
         advancePranaStep();
         return;
       }
@@ -1791,8 +1806,7 @@ function startStepExecution(step, isRound1) {
     durLeft--;
 
     if(durLeft <= 0) {
-      clearInterval(pranaState.countTimer);
-      pranaState.countTimer = null;
+      clearPranaTimers();
       advancePranaStep();
       return;
     }
@@ -2186,6 +2200,8 @@ function openSettings() {
   togSet("tog-diet-notif", cfg.dietNotifOn !== false);
   togSet("tog-auto-diet-post-goal", cfg.autoShowDietPostGoal !== false);
   const unEl = document.getElementById("cfg-user-name"); if(unEl) unEl.value = cfg.userName || "Vaibhav";
+  const uwEl = document.getElementById("cfg-user-weight"); if(uwEl) uwEl.value = cfg.userWeight || 66;
+  const bsEl = document.getElementById("cfg-bottle-size"); if(bsEl) bsEl.value = cfg.bottleMl || 1000;
   const dtEl = document.getElementById("cfg-diet-type"); if(dtEl) dtEl.value = cfg.dietType || "veg";
   const qlEl = document.getElementById("cfg-quote-lang"); if(qlEl) qlEl.value = cfg.quoteLang || cfg.pranaLang || "hi";
   document.getElementById("cfg-alarm-time").value =
@@ -2217,6 +2233,8 @@ function closeSettings() {
   cfg.dietNotifOn      = togGet("tog-diet-notif");
   cfg.autoShowDietPostGoal = togGet("tog-auto-diet-post-goal");
   const unEl2 = document.getElementById("cfg-user-name"); if(unEl2) cfg.userName = unEl2.value.trim() || "Vaibhav";
+  const uwEl2 = document.getElementById("cfg-user-weight"); if(uwEl2) cfg.userWeight = Math.max(30, Math.min(250, parseInt(uwEl2.value) || 66));
+  const bsEl2 = document.getElementById("cfg-bottle-size"); if(bsEl2) cfg.bottleMl = parseInt(bsEl2.value) || 1000;
   const dtEl2 = document.getElementById("cfg-diet-type"); if(dtEl2) cfg.dietType = dtEl2.value || "veg";
   const aTime = document.getElementById("cfg-alarm-time").value || "05:00";
   const [aH, aM] = aTime.split(":").map(Number);
@@ -3951,10 +3969,46 @@ const AYURVEDIC_DIET_PLAN_7DAYS = [
 
 function calcAyurvedicHydrationAndProtein() {
   const sets = todayDone();
-  const waterLiters = (2.5 + Math.floor(sets / 4) * 0.05).toFixed(1);
-  const glasses = Math.round(waterLiters * 4);
-  const proteinGrams = Math.round(50 + Math.floor(sets / 4) * 1.5);
-  return { waterLiters, glasses, proteinGrams, sets };
+  const weight = cfg.userWeight || 66;
+  const bottleMl = cfg.bottleMl || 1000;
+  const burnedKcal = Math.round(todayCalories());
+
+  // 1. Water requirement: 35ml per kg body weight + 30ml per set of Surya Namaskar
+  const waterLiters = (weight * 0.035 + sets * 0.03).toFixed(1);
+  const totalWaterMl = Math.round(waterLiters * 1000);
+
+  // Calculate target bottle/container count based on selected bottle capacity
+  const targetContainers = Math.max(1, Math.ceil(totalWaterMl / bottleMl));
+  const containerLabel = bottleMl >= 1000 ? (bottleMl / 1000 + " L Bottle") : (bottleMl + " ml");
+
+  // 2. Weight Loss Calorie Target & Expenditure
+  const bmr = Math.round(22 * weight);
+  const tdee = Math.round(bmr * 1.35 + burnedKcal);
+  const targetIntakeKcal = Math.max(1200, tdee - 500);
+
+  // 3. 4-Macronutrient & Fiber Calculations
+  const proteinGrams = Math.round(weight * 1.25 + Math.min(20, sets * 0.5));
+  const carbsGrams   = Math.round((targetIntakeKcal * 0.45) / 4);
+  const fatsGrams    = Math.round((targetIntakeKcal * 0.25) / 9);
+  const fiberGrams   = Math.min(40, Math.max(28, Math.round(weight * 0.45)));
+
+  return {
+    weight,
+    sets,
+    burnedKcal,
+    waterLiters,
+    totalWaterMl,
+    bottleMl,
+    targetContainers,
+    containerLabel,
+    proteinGrams,
+    carbsGrams,
+    fatsGrams,
+    fiberGrams,
+    bmr,
+    tdee,
+    targetIntakeKcal
+  };
 }
 
 let activeDietMealType = "breakfast";
@@ -4012,6 +4066,15 @@ function getWaterLoggedToday() {
   return data.waterLogs[tk] || 0;
 }
 
+function changeWaterBottleSize(newMl) {
+  cfg.bottleMl = parseInt(newMl) || 1000;
+  saveAll();
+  const bsEl = document.getElementById("cfg-bottle-size"); if(bsEl) bsEl.value = cfg.bottleMl;
+  const msEl = document.getElementById("modal-bottle-size"); if(msEl) msEl.value = cfg.bottleMl;
+  updateWaterTrackerUI();
+}
+window.changeWaterBottleSize = changeWaterBottleSize;
+
 function logWaterGlass() {
   if (!data.waterLogs) data.waterLogs = {};
   const tk = todayKey();
@@ -4020,17 +4083,39 @@ function logWaterGlass() {
 
   const metrics = calcAyurvedicHydrationAndProtein();
   const logged = data.waterLogs[tk];
-  const target = metrics.glasses;
+  const target = metrics.targetContainers;
+  const remaining = Math.max(0, target - logged);
+  const name = cfg.userName || "Vaibhav";
+  const lang = cfg.quoteLang || cfg.pranaLang || "hi";
 
   updateWaterTrackerUI();
 
-  // Play encouragement voice
+  // Play appreciation & confirmation voice
   if (!voiceMuted && window.speechSynthesis && typeof SpeechSynthesisUtterance !== "undefined") {
     qClear();
     try {
-      const name = cfg.userName || "Vaibhav";
-      const u = new SpeechSynthesisUtterance(`Great job ${name}! 1 glass logged. You have completed ${logged} of ${target} target glasses today.`);
-      u.rate = 0.95; u.lang = "en-IN";
+      const unitStr = metrics.bottleMl >= 1000 ? `${metrics.bottleMl / 1000} Liter bottle` : `${metrics.bottleMl} milliliter glass`;
+      const unitPlural = metrics.bottleMl >= 1000 ? "bottles" : "glasses";
+      let speechMsg = "";
+
+      if (logged >= target) {
+        speechMsg = lang === "hi"
+          ? `बधाई हो ${name}! आपने आज का 100% जल लक्ष्य ${metrics.waterLiters} लीटर (${target} ${metrics.bottleMl >= 1000 ? "बोतल" : "ग्लास"}) पूरा कर लिया है! उत्कृष्ट कार्य!`
+          : lang === "mr"
+          ? `अभिनंदन ${name}! आपण आजचे १००% पाणी लक्ष्य ${metrics.waterLiters} लीटर (${target} ${metrics.bottleMl >= 1000 ? "बाटल्या" : "पेल्या"}) पूर्ण केले आहे! खूप छान!`
+          : `Congratulations ${name}! You have completed 100% of your daily ${metrics.waterLiters} Liters hydration goal with ${target} ${unitPlural}! Outstanding dedication to stay fit, healthy, and energized!`;
+      } else {
+        speechMsg = lang === "hi"
+          ? `बहुत बढ़िया ${name}! 1 ${unitStr} दर्ज हुआ। आज ${logged} पूर्ण, ${remaining} ${unitPlural} बाकी हैं।`
+          : lang === "mr"
+          ? `छान ${name}! १ ${unitStr} नोंदवला. आज ${logged} पूर्ण, ${remaining} बाकी आहेत.`
+          : `Great job ${name}! 1 ${unitStr} confirmed. You have completed ${logged} of ${target} target ${unitPlural} today, with ${remaining} ${unitPlural} remaining.`;
+      }
+
+      const u = new SpeechSynthesisUtterance(speechMsg);
+      u.rate = 0.95;
+      if (lang === "en") u.lang = "en-IN";
+      else u.lang = "hi-IN";
       qSpeak(u);
     } catch (e) {}
   }
@@ -4039,11 +4124,36 @@ function logWaterGlass() {
 function updateWaterTrackerUI() {
   const metrics = calcAyurvedicHydrationAndProtein();
   const logged = getWaterLoggedToday();
-  const target = metrics.glasses;
+  const target = metrics.targetContainers;
+  const remaining = Math.max(0, target - logged);
   const pct = Math.min(100, Math.round((logged / target) * 100));
+  const unitName = metrics.bottleMl >= 1000 ? "Bottles" : "Glasses";
 
-  const ptEl = document.getElementById("water-progress-text"); if (ptEl) ptEl.textContent = `${logged} / ${target} Glasses`;
-  const pbEl = document.getElementById("water-progress-bar");  if (pbEl) pbEl.style.width = pct + "%";
+  const ptEl = document.getElementById("water-progress-text");
+  if (ptEl) {
+    ptEl.textContent = `${logged} / ${target} ${unitName} (${remaining > 0 ? remaining + ' left' : 'Goal Reached!'})`;
+  }
+
+  const wgEl = document.getElementById("diet-water-glasses");
+  if (wgEl) {
+    wgEl.textContent = `(${target} ${unitName} of ${metrics.containerLabel})`;
+  }
+
+  const btnEl = document.getElementById("log-water-btn-text");
+  if (btnEl) {
+    btnEl.textContent = `💧 +1 ${metrics.containerLabel} Confirmed`;
+  }
+
+  const msEl = document.getElementById("modal-bottle-size");
+  if (msEl && cfg.bottleMl) msEl.value = cfg.bottleMl;
+  const bsEl = document.getElementById("cfg-bottle-size");
+  if (bsEl && cfg.bottleMl) bsEl.value = cfg.bottleMl;
+
+  const pbEl = document.getElementById("water-progress-bar");
+  if (pbEl) pbEl.style.width = pct + "%";
+
+  const gbEl = document.getElementById("water-goal-badge");
+  if (gbEl) gbEl.style.display = logged >= target ? "block" : "none";
 }
 
 let currentDietTabMode = "both";
@@ -4213,12 +4323,19 @@ function showDietModal(mealTypeOverride) {
   const planObj = getDietPlanForCurrentState(mealTypeOverride, activePref);
   const metrics = calcAyurvedicHydrationAndProtein();
 
-  const icEl = document.getElementById("diet-modal-icon");    if(icEl) icEl.textContent = planObj.mealType === "breakfast" ? "🥣" : (planObj.mealType === "lunch" ? "🍲" : "🌙");
-  const grEl = document.getElementById("diet-user-greeting"); if(grEl) grEl.textContent = "Namaste " + planObj.name + "! 🙏 (" + planObj.dayName + ")";
-  const wvEl = document.getElementById("diet-water-val");     if(wvEl) wvEl.textContent = metrics.waterLiters + " L";
-  const wgEl = document.getElementById("diet-water-glasses"); if(wgEl) wgEl.textContent = "(" + metrics.glasses + " Glasses)";
-  const pvEl = document.getElementById("diet-protein-val");   if(pvEl) pvEl.textContent = metrics.proteinGrams + "g";
-  const scEl = document.getElementById("diet-sets-count");    if(scEl) scEl.textContent = "Based on " + metrics.sets + " Sets Today";
+  const icEl = document.getElementById("diet-modal-icon");          if(icEl) icEl.textContent = planObj.mealType === "breakfast" ? "🥣" : (planObj.mealType === "lunch" ? "🍲" : "🌙");
+  const grEl = document.getElementById("diet-user-greeting");       if(grEl) grEl.textContent = "Namaste " + planObj.name + "! 🙏 (" + planObj.dayName + ")";
+  const wvEl = document.getElementById("diet-water-val");           if(wvEl) wvEl.textContent = metrics.waterLiters + " L";
+  const wgEl = document.getElementById("diet-water-glasses");       if(wgEl) wgEl.textContent = "(" + metrics.glasses + " Glasses)";
+  const pvEl = document.getElementById("diet-protein-val");         if(pvEl) pvEl.textContent = metrics.proteinGrams + "g";
+  const cvEl = document.getElementById("diet-carbs-val");           if(cvEl) cvEl.textContent = metrics.carbsGrams + "g";
+  const fvEl = document.getElementById("diet-fats-val");            if(fvEl) fvEl.textContent = metrics.fatsGrams + "g";
+  const fbEl = document.getElementById("diet-fiber-val");           if(fbEl) fbEl.textContent = metrics.fiberGrams + "g";
+  const scEl = document.getElementById("diet-sets-count");          if(scEl) scEl.textContent = "Based on " + metrics.weight + "kg & " + metrics.sets + " Sets";
+
+  const bwEl = document.getElementById("diet-weight-val");          if(bwEl) bwEl.textContent = "Weight: " + metrics.weight + " kg";
+  const dbEl = document.getElementById("diet-burned-val");          if(dbEl) dbEl.textContent = metrics.burnedKcal + " kcal";
+  const dtEl = document.getElementById("diet-intake-target-val");   if(dtEl) dtEl.textContent = metrics.targetIntakeKcal.toLocaleString() + " kcal/day";
 
   renderFullDayDietPlan();
   updateWaterTrackerUI();

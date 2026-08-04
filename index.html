@@ -846,6 +846,26 @@ footer p{font-size:9.5px;color:var(--muted)}
                font-size:13px;font-weight:700;width:120px">
     </div>
     <div class="srow">
+      <label>⚖️ Body Weight (kg) (for accurate MET calories)</label>
+      <div style="display:flex;align-items:center;gap:4px">
+        <input type="number" id="cfg-user-weight" value="66" min="30" max="250" step="1" placeholder="66"
+          style="background:var(--surf2);border:1px solid var(--bdr);
+                 color:var(--txt);border-radius:8px;padding:6px 8px;
+                 font-size:13px;font-weight:700;width:70px">
+        <span style="font-size:12px;font-weight:700;color:var(--txt2)">kg</span>
+      </div>
+    </div>
+    <div class="srow">
+      <label>🍾 Water Bottle / Container Capacity</label>
+      <select id="cfg-bottle-size" style="background:var(--surf2);border:1px solid var(--bdr);color:var(--txt);border-radius:8px;padding:6px 8px;font-size:13px;font-weight:700">
+        <option value="250">🥤 Glass (250 ml)</option>
+        <option value="300">🍾 Small Bottle (300 ml)</option>
+        <option value="500">🍶 Medium Bottle (500 ml / 0.5 L)</option>
+        <option value="750">🚴 Sports Bottle (750 ml / 0.75 L)</option>
+        <option value="1000" selected>🍾 1 Liter Bottle (1000 ml / 1 L)</option>
+      </select>
+    </div>
+    <div class="srow">
       <label>🥗 Diet Preference</label>
       <select id="cfg-diet-type" style="background:var(--surf2);border:1px solid var(--bdr);color:var(--txt);border-radius:8px;padding:6px 8px;font-size:13px">
         <option value="veg" selected>🌱 Vegetarian (शाकाहारी)</option>
@@ -1099,37 +1119,92 @@ footer p{font-size:9.5px;color:var(--muted)}
       <button onclick="closeDietModal()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px">✕</button>
     </div>
 
-    <!-- Target Cards Row -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-      <!-- Water Card -->
-      <div style="background:rgba(29,184,127,0.1);border:1px solid var(--acc-dim);border-radius:14px;padding:10px;text-align:center">
-        <div style="font-size:20px;margin-bottom:2px">💧</div>
-        <div style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase">Water Target</div>
-        <div style="font-size:15px;font-weight:900;color:var(--acc-lt)" id="diet-water-val">2.5 L</div>
-        <div style="font-size:10px;color:var(--txt2)" id="diet-water-glasses">(10 Glasses)</div>
+    <!-- Personalized Weight Loss & Calorie Banner -->
+    <div style="background:linear-gradient(135deg,rgba(255,107,107,0.12),rgba(255,159,67,0.12));border:1px solid rgba(255,107,107,0.35);border-radius:14px;padding:12px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="font-size:11px;font-weight:900;color:#FF6B6B;display:flex;align-items:center;gap:6px">
+          🔥 FIT &amp; HEALTHY WEIGHT LOSS TARGET
+        </div>
+        <div style="font-size:11px;font-weight:800;color:var(--txt2)" id="diet-weight-val">Weight: 66 kg</div>
       </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:center">
+        <div style="background:var(--surf2);border-radius:10px;padding:8px">
+          <div style="font-size:10px;color:var(--txt2);font-weight:700">Today's Active Burn</div>
+          <div style="font-size:15px;font-weight:900;color:#FF6B6B" id="diet-burned-val">0 kcal</div>
+        </div>
+        <div style="background:var(--surf2);border-radius:10px;padding:8px">
+          <div style="font-size:10px;color:var(--txt2);font-weight:700">Recommended Daily Intake</div>
+          <div style="font-size:15px;font-weight:900;color:#FF9F43" id="diet-intake-target-val">1,500 kcal/day</div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--txt2);margin-top:6px;text-align:center" id="diet-deficit-note">
+        🎯 Designed with 500 kcal daily deficit for healthy ~0.5 kg/week fat loss.
+      </div>
+    </div>
+
+    <!-- 4-Macronutrient & Fiber Breakdown Row -->
+    <div style="font-size:11px;font-weight:900;color:var(--acc-lt);margin-bottom:6px">🥗 DAILY MACRONUTRIENT BREAKDOWN</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:14px">
       <!-- Protein Card -->
-      <div style="background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.3);border-radius:14px;padding:10px;text-align:center">
-        <div style="font-size:20px;margin-bottom:2px">🥩</div>
-        <div style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase">Protein Needed</div>
-        <div style="font-size:15px;font-weight:900;color:#FFD700" id="diet-protein-val">50g</div>
-        <div style="font-size:10px;color:var(--txt2)" id="diet-sets-count">Based on 0 Sets</div>
+      <div style="background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.3);border-radius:12px;padding:8px 4px;text-align:center">
+        <div style="font-size:16px;margin-bottom:2px">🥩</div>
+        <div style="font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase">Protein</div>
+        <div style="font-size:13px;font-weight:900;color:#FFD700" id="diet-protein-val">91g</div>
+      </div>
+      <!-- Carbs Card -->
+      <div style="background:rgba(255,159,67,0.1);border:1px solid rgba(255,159,67,0.3);border-radius:12px;padding:8px 4px;text-align:center">
+        <div style="font-size:16px;margin-bottom:2px">🌾</div>
+        <div style="font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase">Carbs</div>
+        <div style="font-size:13px;font-weight:900;color:#FF9F43" id="diet-carbs-val">178g</div>
+      </div>
+      <!-- Healthy Fats Card -->
+      <div style="background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.3);border-radius:12px;padding:8px 4px;text-align:center">
+        <div style="font-size:16px;margin-bottom:2px">🥑</div>
+        <div style="font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase">Healthy Fats</div>
+        <div style="font-size:13px;font-weight:900;color:#4ADE80" id="diet-fats-val">44g</div>
+      </div>
+      <!-- Fiber Card -->
+      <div style="background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);border-radius:12px;padding:8px 4px;text-align:center">
+        <div style="font-size:16px;margin-bottom:2px">🥦</div>
+        <div style="font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase">Fiber</div>
+        <div style="font-size:13px;font-weight:900;color:#38BDF8" id="diet-fiber-val">32g</div>
       </div>
     </div>
 
     <!-- Water Hydration Tracker Card -->
     <div style="background:linear-gradient(135deg,rgba(29,184,127,0.15),rgba(15,80,55,0.25));border:1px solid var(--acc);border-radius:16px;padding:12px;margin-bottom:14px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-        <div style="font-size:12px;font-weight:900;color:var(--acc-lt)">💧 TODAY'S HYDRATION TRACKER</div>
-        <div style="font-size:12px;font-weight:900;color:var(--txt)" id="water-progress-text">0 / 10 Glasses</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div style="font-size:12px;font-weight:900;color:var(--acc-lt)">💧 HYDRATION TRACKER</div>
+        <div style="font-size:12px;font-weight:900;color:var(--txt)" id="water-progress-text">0 / 11 Glasses</div>
+      </div>
+      <div style="font-size:10px;font-weight:700;color:var(--txt2);margin-bottom:6px" id="water-remaining-text">
+        Target: <span id="diet-water-val">2.8 L</span> <span id="diet-water-glasses">(11 Glasses)</span>
       </div>
       <div style="background:var(--surf2);height:8px;border-radius:4px;overflow:hidden;margin-bottom:8px">
         <div id="water-progress-bar" style="background:linear-gradient(90deg,var(--acc-lt),#5DE0A8);height:100%;width:0%;transition:width .3s ease"></div>
       </div>
+
+      <!-- Celebratory Goal Badge -->
+      <div id="water-goal-badge" style="display:none;background:rgba(255,215,0,0.15);border:1px solid #FFD700;border-radius:10px;padding:6px 10px;margin-bottom:8px;font-size:11px;font-weight:900;color:#FFD700;text-align:center">
+        🎉 100% Hydration Goal Completed! Excellent Work!
+      </div>
+
+      <!-- Bottle / Container Selection Row -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;background:rgba(0,0,0,0.15);padding:6px 10px;border-radius:10px">
+        <label style="font-size:10px;font-weight:800;color:var(--acc-lt)">🍾 Container Size:</label>
+        <select id="modal-bottle-size" onchange="changeWaterBottleSize(this.value)" style="background:var(--surf2);border:1px solid var(--bdr);color:var(--txt);border-radius:6px;padding:3px 6px;font-size:11px;font-weight:700">
+          <option value="250">🥤 Glass (250 ml)</option>
+          <option value="300">🍾 Small Bottle (300 ml)</option>
+          <option value="500">🍶 Medium Bottle (500 ml / 0.5 L)</option>
+          <option value="750">🚴 Sports Bottle (750 ml / 0.75 L)</option>
+          <option value="1000" selected>🍾 1 Liter Bottle (1000 ml / 1 L)</option>
+        </select>
+      </div>
+
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <div style="font-size:10px;color:var(--txt2)">Optimal muscle recovery hydration</div>
-        <button onclick="logWaterGlass()" style="background:var(--acc);color:#06231A;border:none;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:900;cursor:pointer;display:flex;align-items:center;gap:4px">
-          💧 +1 Glass
+        <div style="font-size:10px;color:var(--txt2)" id="diet-sets-count">Based on 66kg &amp; 0 Sets</div>
+        <button onclick="logWaterGlass()" style="background:var(--acc);color:#06231A;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:900;cursor:pointer;display:flex;align-items:center;gap:4px">
+          <span id="log-water-btn-text">💧 +1 Bottle (1 L) Confirmed</span>
         </button>
       </div>
     </div>

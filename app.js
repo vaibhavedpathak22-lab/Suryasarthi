@@ -686,14 +686,7 @@ function handleMainBtn() {
     }
     if(checkAppLockState()) return;
 
-    // Check if Gita modal is already visible. If not, present daily Gita inspiration before practice!
-    const modal = document.getElementById("gita-modal");
-    if(modal && modal.style.display !== "flex") {
-      showGitaQuoteModal(true);
-      return;
-    }
-
-    // Fresh start
+    // Fresh start practice session directly when tapped on main screen
     startFreshPracticeSession();
     return;
   }
@@ -2689,38 +2682,7 @@ function snoozeAlarm(min) {
   _tryAndroidAlarm(now.getHours(), now.getMinutes());
 }
 
-let _gitaCountdownInterval = null;
-
-function startGita30SecCountdown() {
-  stopGita30SecCountdown();
-  let leftSec = 30;
-  const badgeEl = document.getElementById("gita-autostart-badge");
-  if(badgeEl) {
-    badgeEl.style.display = "inline-block";
-    badgeEl.textContent = "⏱ Auto-starting practice in " + leftSec + "s...";
-  }
-
-  _gitaCountdownInterval = setInterval(() => {
-    leftSec--;
-    if(leftSec <= 0) {
-      stopGita30SecCountdown();
-      startPracticeFromAlarm();
-    } else {
-      if(badgeEl) badgeEl.textContent = "⏱ Auto-starting practice in " + leftSec + "s...";
-    }
-  }, 1000);
-}
-
-function stopGita30SecCountdown() {
-  if(_gitaCountdownInterval) {
-    clearInterval(_gitaCountdownInterval);
-    _gitaCountdownInterval = null;
-  }
-  const badgeEl = document.getElementById("gita-autostart-badge");
-  if(badgeEl) badgeEl.style.display = "none";
-}
-
-function showGitaQuoteModal(autoStartAfterSpeech = true) {
+function showGitaQuoteModal() {
   const quote = getDailyGitaQuote();
   const lang = cfg.quoteLang || cfg.pranaLang || "hi";
   const meaning = getQuoteMeaning(quote, lang);
@@ -2753,23 +2715,25 @@ function showGitaQuoteModal(autoStartAfterSpeech = true) {
     }
   }
 
+  // Ensure Start Surya Namaskara Now button is unlocked for user decision
+  const startBtn = document.getElementById("gita-start-btn");
+  if(startBtn) {
+    startBtn.disabled = false;
+    startBtn.style.opacity = "1";
+    startBtn.style.cursor = "pointer";
+    startBtn.innerHTML = "🧘 Start Surya Namaskara Now";
+  }
+
   const modal = document.getElementById("gita-modal");
   if(modal) {
     modal.style.display = "flex";
     modal.classList.add("show");
   }
 
-  stopGita30SecCountdown();
-
-  if(autoStartAfterSpeech) {
-    speakCurrentGitaQuote(() => {
-      startGita30SecCountdown();
-    });
-  }
+  speakCurrentGitaQuote();
 }
 
 function closeGitaQuoteModal() {
-  stopGita30SecCountdown();
   const modal = document.getElementById("gita-modal");
   if(modal) {
     modal.style.display = "none";
@@ -2815,7 +2779,6 @@ function speakCurrentGitaQuote(onComplete) {
 }
 
 function startPracticeFromAlarm() {
-  stopGita30SecCountdown();
   if(_snoozeTimeout) { clearTimeout(_snoozeTimeout); _snoozeTimeout = null; }
   alarmSnoozeCount = 0;
   closeGitaQuoteModal();
@@ -2938,7 +2901,6 @@ function fireAlarm(isSnooze = false) {
       n.onclick = ()=>{ 
         try { window.focus(); } catch(e){}
         showGitaQuoteModal();
-        speakCurrentGitaQuote();
         n.close(); 
       };
     } catch(e) { console.warn("Notification error:", e); }

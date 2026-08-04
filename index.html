@@ -1021,9 +1021,14 @@ footer p{font-size:9.5px;color:var(--muted)}
       </div>
     </div>
 
-    <!-- Today's Goal Pill -->
-    <div id="gita-target-pill" style="font-size:11px;font-weight:700;color:var(--acc-lt);background:var(--surf2);border:1px solid var(--bdr);border-radius:20px;padding:6px 14px;display:inline-block;margin-bottom:14px">
-      🎯 Today's Target: 8 Rounds
+    <!-- Today's Goal Pill & 30s Auto-Start Badge -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      <div id="gita-target-pill" style="font-size:11px;font-weight:700;color:var(--acc-lt);background:var(--surf2);border:1px solid var(--bdr);border-radius:20px;padding:6px 14px">
+        🎯 Today's Target: 8 Rounds
+      </div>
+      <div id="gita-autostart-badge" style="display:none;font-size:11px;font-weight:800;color:#FFD700;background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.4);border-radius:20px;padding:6px 14px">
+        ⏱ Auto-starting practice in 30s...
+      </div>
     </div>
 
     <!-- Snooze Controls (Max 2 times) -->

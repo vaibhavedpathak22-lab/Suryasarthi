@@ -120,7 +120,7 @@ Provides a structured 35-minute (35:00 / 2,100 seconds) guided breathwork and me
 
 ### 🟢 Basic Features:
 - **8 Guided Practices**:
-  1. *Dirgha Pranayama* (Three-Part Deep Breathing)
+  1. *Dirgha Pranayama* (Three-Part Deep Breathing — 4s Inhale, 4s Hold, 8s Exhale / 1:1:2 classical ratio)
   2. *Kapalabhati* (Skull-Shining Purification / Shatkarma)
   3. *Bhastrika* (Bellows Breath)
   4. *Anulom-Vilom* (Alternate Nostril Balance)
@@ -149,8 +149,8 @@ Provides a structured 35-minute (35:00 / 2,100 seconds) guided breathwork and me
   Inside the modal, an interactive horizontal tab selector bar (`[1. Dirgha]`, `[2. Kapalabhati]`, `[3. Bhastrika]`, `[4. Anulom Vilom]`, `[5. Nadi Shodhana]`, `[6. Ujjayi]`, `[7. Bhramari]`, `[8. Dhyana]`) allows switching to inspect and listen to any of the 8 Pranayama practices separately.
 - **Voice Audio Guidance & Round Freeze**:
   Tapping any practice tab loads the 11-point Classical Yoga & Ayurveda guide and reads it out loud. Background Pranayama rounds automatically freeze (`📖 Guide Speaking — Round Paused`) while the guide voice is speaking and resume when finished or closed.
-- **Silent Alarm Scheduling & Alert Elimination**:
-  Removed automatic `_tryAndroidAlarm` intent execution from `scheduleAlarm()` on app launch to eliminate annoying browser `alert()` popups. Internal PWA alarm timer (`scheduleAlarm()`) runs silently in background. The Android Clock app intent is triggered exclusively when the user explicitly taps **"Set Android Alarm"** in Settings.
+- **Daily Gita Shloka Auto-Recitation & 30s Auto-Start Session**:
+  When the alarm triggers at the user-defined time (or before every fresh practice session), the app automatically opens today's new Bhagavad Gita shloka. First, it recites the shloka in Sanskrit (`hi-IN` TTS), followed immediately by the explanation in the user's selected language (`cfg.quoteLang`: Hindi, Marathi, or English). Once the explanation completes, a 30-second auto-start countdown (`#gita-autostart-badge`) activates alongside the **"🧘 Start Surya Namaskara Now"** button, automatically beginning physical practice after 30 seconds if not started manually.
 - **Strict Diet & Hydration Visibility Locking**:
   The **"Today's Ayurvedic Diet & Hydration"** section (`#card-view-diet-plan`) is completely hidden (`display: none`) from the main screen during incomplete practice and initial Pranayama execution. It appears (`display: flex`) strictly when:
   1. Today's goal AND the 8th/last type of Pranayama are finished (`endPranayama()`), OR

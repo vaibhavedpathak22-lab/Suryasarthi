@@ -656,6 +656,18 @@ function updateClockDisplay() {
   }
 }
 
+function startFreshPracticeSession() {
+  sess.active=true; sess.paused=false; sess.step=0;
+  sess.sessionStart=Date.now(); sess.sessionPaused=0; sess.pauseAt=0;
+  poseElapsed=0;
+  speakMantra(STEPS[0].mantraD, STEPS[0].breath);
+  startPoseTimer(); startClock(); vib(20);
+  acquireWakeLock();
+  showDndBanner();
+  document.getElementById("main-label").textContent="⏸ Pause";
+  render();
+}
+
 /* ── Session logic ───────────────────────────────────────────── */
 function handleMainBtn() {
   if(!sess.active) {
@@ -673,16 +685,17 @@ function handleMainBtn() {
       return;
     }
     if(checkAppLockState()) return;
+
+    // Check if Gita modal is already visible. If not, present daily Gita inspiration before practice!
+    const modal = document.getElementById("gita-modal");
+    if(modal && modal.style.display !== "flex") {
+      showGitaQuoteModal(true);
+      return;
+    }
+
     // Fresh start
-    sess.active=true; sess.paused=false; sess.step=0;
-    sess.sessionStart=Date.now(); sess.sessionPaused=0; sess.pauseAt=0;
-    poseElapsed=0;
-    speakMantra(STEPS[0].mantraD, STEPS[0].breath);
-    startPoseTimer(); startClock(); vib(20);
-    acquireWakeLock();
-    showDndBanner();
-    document.getElementById("main-label").textContent="⏸ Pause";
-    render(); return;
+    startFreshPracticeSession();
+    return;
   }
   if(!sess.paused) {
     // Pause
@@ -1354,7 +1367,7 @@ const PRANAYAMA_BASE = [
   {
     id: "dirgha",
     name: "Dirgha Pranayama", nameHi: "दीर्घ प्राणायाम", nameMr: "दीर्घ प्राणायाम",
-    totalRounds: 6, secPerRound: 25,
+    totalRounds: 6, secPerRound: 16,
     desc: "Three-part deep belly breathing — prepares body & mind",
     descHi: "तीन भागों में गहरी श्वसन — शरीर और मन को तैयार करता है",
     descMr: "तीन भागांत खोल श्वसन — शरीर आणि मन तयार करते",
@@ -1368,20 +1381,20 @@ const PRANAYAMA_BASE = [
       { en: "Hold gently for 4 counts.",
         hi: "4 गिनती तक आराम से रोकें।",
         mr: "4 मोजेपर्यंत हळूच थांबा.", dur: 4, action: "hold", count: 4, label: "⏸ Hold" },
-      { en: "Exhale slowly for 11 counts. Chest, ribs, then belly falls.",
-        hi: "11 गिनती तक धीरे श्वास छोड़ें।",
-        mr: "11 मोजेपर्यंत हळू श्वास सोडा.", dur: 11, action: "exhale", count: 11, label: "🌬 Exhale" }
+      { en: "Exhale slowly for 8 counts. Chest, ribs, then belly falls.",
+        hi: "8 गिनती तक धीरे श्वास छोड़ें।",
+        mr: "8 मोजेपर्यंत हळू श्वास सोडा.", dur: 8, action: "exhale", count: 8, label: "🌬 Exhale" }
     ]
   },
   {
     id: "kapalabhati",
     name: "Kapalabhati", nameHi: "कपालभाती", nameMr: "कपालभाती",
-    totalRounds: 5, secPerRound: 54,
+    totalRounds: 5, secPerRound: 48,
     desc: "Skull-shining breath — 36 forceful exhales per round",
     descHi: "कपालभाती — प्रति राउंड 36 तेज़ श्वास छोड़ना",
     descMr: "कपालभाती — प्रति फेरी 36 जोरदार श्वास सोडणे",
     steps: [
-      { en: "Sit tall. Take one deep breath to prepare.",
+      { en: "Sit tall with spine erect. Take one deep breath to prepare.",
         hi: "सीधे बैठें। एक गहरी साँस लें।",
         mr: "सरळ बसा. एक खोल श्वास घ्या.", dur: 6, action: "setup" },
       { en: "Begin 36 sharp forceful exhales through nose at 1 stroke per second. Pull navel in.",
@@ -1425,21 +1438,15 @@ const PRANAYAMA_BASE = [
       { en: "Inhale through LEFT nostril for 4 counts.",
         hi: "बाईं से 4 गिनती में श्वास लें।",
         mr: "डाव्याकडून 4 मोजेपर्यंत श्वास घ्या.", dur: 4, action: "inhale", count: 4, label: "👈 Inhale Left" },
-      { en: "Close both nostrils. Hold for 2 counts.",
-        hi: "दोनों बंद। 2 गिनती रोकें।",
-        mr: "दोनों बंद. 2 मोजे थांबा.", dur: 2, action: "hold", count: 2, label: "⏸ Hold" },
-      { en: "Exhale through RIGHT nostril for 5 counts.",
-        hi: "दाहिनी से 5 गिनती में छोड़ें।",
-        mr: "उजवीकडून 5 मोजेपर्यंत सोडा.", dur: 5, action: "exhale", count: 5, label: "👉 Exhale Right" },
+      { en: "Exhale through RIGHT nostril for 8 counts.",
+        hi: "दाहिनी से 8 गिनती में छोड़ें।",
+        mr: "उजवीकडून 8 मोजेपर्यंत सोडा.", dur: 8, action: "exhale", count: 8, label: "👉 Exhale Right" },
       { en: "Inhale through RIGHT nostril for 4 counts.",
         hi: "दाहिनी से 4 गिनती में लें।",
         mr: "उजवीकडून 4 मोजेपर्यंत घ्या.", dur: 4, action: "inhale", count: 4, label: "👉 Inhale Right" },
-      { en: "Close both nostrils. Hold for 2 counts.",
-        hi: "दोनों बंद। 2 गिनती रोकें।",
-        mr: "दोनों बंद. 2 मोजे थांबा.", dur: 2, action: "hold", count: 2, label: "⏸ Hold" },
-      { en: "Exhale through LEFT nostril for 5 counts.",
-        hi: "बाईं से 5 गिनती में छोड़ें।",
-        mr: "डाव्याकडून 5 मोजेपर्यंत सोडा.", dur: 5, action: "exhale", count: 5, label: "👈 Exhale Left" }
+      { en: "Exhale through LEFT nostril for 8 counts.",
+        hi: "बाईं से 8 गिनती में छोड़ें।",
+        mr: "डाव्याकडून 8 मोजेपर्यंत सोडा.", dur: 8, action: "exhale", count: 8, label: "👈 Exhale Left" }
     ]
   },
   {
@@ -1495,7 +1502,7 @@ const PRANAYAMA_BASE = [
   {
     id: "bhramari",
     name: "Bhramari", nameHi: "भ्रामरी", nameMr: "भ्रामरी",
-    totalRounds: 10, secPerRound: 21,
+    totalRounds: 10, secPerRound: 16,
     desc: "Humming bee breath — calms brain & nervous system",
     descHi: "भ्रामरी — मधुमक्खी की गुनगुनाहट (10 राउंड)",
     descMr: "भ्रामरी — मधमाशीचा गुणगुणाट (10 फेऱ्या)",
@@ -1699,6 +1706,8 @@ function startPranaPhase() {
 function startPranaStep() {
   if(!pranaState.active || pranaState.paused) return;
   clearPranaTimers();
+  qClear();
+  try { if(window.speechSynthesis) window.speechSynthesis.cancel(); } catch(e){}
 
   const phase   = PRANAYAMA_BASE[pranaState.phaseIdx];
   const steps   = phase.steps;
@@ -1866,11 +1875,17 @@ function speakLiveStepCount(step, curSec, isRound1) {
                       lang === "mr" ? ("विश्रांती " + restNum + " सेकंद") :
                       ("Rest " + maxSec + " seconds");
       speakPranaCount(restMsg);
+    } else {
+      speakPranaCount(numWord);
     }
     return;
   }
-  if(step.action === "humming" && curSec === 1) {
-    speakPranaCount(lang === "hi" ? "गुनगुनाएं" : lang === "mr" ? "गुणगुणाट" : "Humming");
+  if(step.action === "humming") {
+    if(curSec === 1) {
+      speakPranaCount((lang === "hi" ? "गुनगुनाएं " : lang === "mr" ? "गुणगुणाट " : "Humming ") + numWord);
+    } else {
+      speakPranaCount(numWord);
+    }
   }
 }
 
@@ -1922,16 +1937,10 @@ function advancePranaRound() {
     pranaState.roundNum++;
     pranaState.stepIdx = 0;
     qClear();
+    try { if(window.speechSynthesis) window.speechSynthesis.cancel(); } catch(e){}
     updatePranaGuideLockButton(false); // Unlocked before round transition
-    const lang = cfg.pranaLang || "en";
-    const numWord = getLanguageNumber(pranaState.roundNum, lang);
-    const rText = lang === "hi" ? ("राउंड " + numWord) :
-                  lang === "mr" ? ("फेरी " + numWord) :
-                  ("Round " + pranaState.roundNum);
-    speakPranaInstruction(rText, () => {
-      if(!pranaState.active || pranaState.paused) return;
-      startPranaStep();
-    });
+    if(!pranaState.active || pranaState.paused) return;
+    startPranaStep();
   }
 }
 
@@ -1969,6 +1978,7 @@ function startPranaClocks() {
 function nextPranaPhase() {
   clearPranaTimers();
   qClear();
+  try { if(window.speechSynthesis) window.speechSynthesis.cancel(); } catch(e){}
   pranaState.phaseIdx++;
   if(pranaState.phaseIdx >= PRANAYAMA_BASE.length) {
     endPranayama(); return;
@@ -2679,7 +2689,38 @@ function snoozeAlarm(min) {
   _tryAndroidAlarm(now.getHours(), now.getMinutes());
 }
 
-function showGitaQuoteModal() {
+let _gitaCountdownInterval = null;
+
+function startGita30SecCountdown() {
+  stopGita30SecCountdown();
+  let leftSec = 30;
+  const badgeEl = document.getElementById("gita-autostart-badge");
+  if(badgeEl) {
+    badgeEl.style.display = "inline-block";
+    badgeEl.textContent = "⏱ Auto-starting practice in " + leftSec + "s...";
+  }
+
+  _gitaCountdownInterval = setInterval(() => {
+    leftSec--;
+    if(leftSec <= 0) {
+      stopGita30SecCountdown();
+      startPracticeFromAlarm();
+    } else {
+      if(badgeEl) badgeEl.textContent = "⏱ Auto-starting practice in " + leftSec + "s...";
+    }
+  }, 1000);
+}
+
+function stopGita30SecCountdown() {
+  if(_gitaCountdownInterval) {
+    clearInterval(_gitaCountdownInterval);
+    _gitaCountdownInterval = null;
+  }
+  const badgeEl = document.getElementById("gita-autostart-badge");
+  if(badgeEl) badgeEl.style.display = "none";
+}
+
+function showGitaQuoteModal(autoStartAfterSpeech = true) {
   const quote = getDailyGitaQuote();
   const lang = cfg.quoteLang || cfg.pranaLang || "hi";
   const meaning = getQuoteMeaning(quote, lang);
@@ -2717,9 +2758,18 @@ function showGitaQuoteModal() {
     modal.style.display = "flex";
     modal.classList.add("show");
   }
+
+  stopGita30SecCountdown();
+
+  if(autoStartAfterSpeech) {
+    speakCurrentGitaQuote(() => {
+      startGita30SecCountdown();
+    });
+  }
 }
 
 function closeGitaQuoteModal() {
+  stopGita30SecCountdown();
   const modal = document.getElementById("gita-modal");
   if(modal) {
     modal.style.display = "none";
@@ -2728,8 +2778,11 @@ function closeGitaQuoteModal() {
   qClear();
 }
 
-function speakCurrentGitaQuote() {
-  if(voiceMuted || !window.speechSynthesis) return;
+function speakCurrentGitaQuote(onComplete) {
+  if(voiceMuted || !window.speechSynthesis || typeof SpeechSynthesisUtterance === "undefined") {
+    if(onComplete) onComplete();
+    return;
+  }
   const quote = getDailyGitaQuote();
   const lang = cfg.quoteLang || cfg.pranaLang || "hi";
   const meaning = getQuoteMeaning(quote, lang);
@@ -2752,16 +2805,22 @@ function speakCurrentGitaQuote() {
     uMeaning.lang = "hi-IN"; uMeaning.rate = 0.92;
   }
 
+  if(onComplete) {
+    uMeaning.onend = () => { onComplete(); };
+    uMeaning.onerror = () => { onComplete(); };
+  }
+
   qSpeak(uShloka);
   qSpeak(uMeaning);
 }
 
 function startPracticeFromAlarm() {
+  stopGita30SecCountdown();
   if(_snoozeTimeout) { clearTimeout(_snoozeTimeout); _snoozeTimeout = null; }
   alarmSnoozeCount = 0;
   closeGitaQuoteModal();
   if(!sess.active) {
-    handleMainBtn();
+    startFreshPracticeSession();
   }
 }
 

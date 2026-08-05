@@ -2148,7 +2148,15 @@ if(voiceBtn) voiceBtn.addEventListener("click",()=>{
 // CHART TABS — 7d / 14d / 21d day-window switchers
 document.querySelectorAll(".chart-tab[data-days]").forEach(btn => {
   btn.addEventListener("click", () => {
-    cfg.chartDays = parseInt(btn.dataset.days) || 7;
+    const days = parseInt(btn.dataset.days) || 7;
+    if (days > 7 && !data.isPremium) {
+      vib(30);
+      if (confirm("🔒 14-Day & 21-Day History Analytics are PRO Plan features (only ₹4/day!). View PRO plans?")) {
+        showPaywallOverlay();
+      }
+      return;
+    }
+    cfg.chartDays = days;
     syncChartUI();
     saveAll();
     renderBars();
@@ -2715,6 +2723,22 @@ function snoozeAlarm(min) {
 }
 
 function showGitaQuoteModal() {
+  // Close any open diet modal or settings drawer
+  const dietModal = document.getElementById("diet-modal");
+  if (dietModal) {
+    dietModal.style.display = "none";
+    dietModal.classList.remove("show");
+  }
+  const pranaModal = document.getElementById("prana-guide-modal");
+  if (pranaModal) {
+    pranaModal.style.display = "none";
+    pranaModal.classList.remove("show");
+  }
+  const dr = document.getElementById("dr");
+  if (dr && dr.classList.contains("show")) {
+    dr.classList.remove("show");
+  }
+
   const quote = getDailyGitaQuote();
   const lang = cfg.quoteLang || cfg.pranaLang || "hi";
   const meaning = getQuoteMeaning(quote, lang);
@@ -4676,6 +4700,17 @@ function speakWaterHydrationStatus() {
 window.speakWaterHydrationStatus = speakWaterHydrationStatus;
 
 function showDietModal(mealTypeOverride, mode = "diet") {
+  // If gita modal is open, close it cleanly
+  const gitaModal = document.getElementById("gita-modal");
+  if (gitaModal) {
+    gitaModal.style.display = "none";
+    gitaModal.classList.remove("show");
+  }
+  const pranaModal = document.getElementById("prana-guide-modal");
+  if (pranaModal) {
+    pranaModal.style.display = "none";
+    pranaModal.classList.remove("show");
+  }
   // If settings drawer is open, close it cleanly
   const dr = document.getElementById("dr");
   if (dr && dr.classList.contains("show")) {
@@ -5115,19 +5150,23 @@ function scanAndRecover() {
      surya.sub.6month   — 6-Month auto-renewing subscription
      surya.sub.12month  — 12-Month auto-renewing subscription
 ═══════════════════════════════════════════════════════════════ */
-let selectedSku = "surya.sub.6month";
+let selectedSku = "surya.sub.12month";
 
 function selectSubTier(sku) {
   selectedSku = sku;
-  ["1month", "6month", "12month"].forEach(t => {
+  ["1month", "3month", "6month", "12month"].forEach(t => {
     const el = document.getElementById("sub-card-" + t);
     if(el) {
       if(sku.includes(t)) {
-        el.style.borderColor = "var(--acc)";
-        el.style.borderWidth = "2px";
+        el.style.borderColor = "#FBBF24";
+        el.style.borderWidth = "2.5px";
+        el.style.background = "rgba(245,158,11,0.12)";
+        el.style.boxShadow = "0 0 14px rgba(245,158,11,0.4)";
       } else {
         el.style.borderColor = "var(--bdr)";
         el.style.borderWidth = "1.5px";
+        el.style.background = "var(--surf)";
+        el.style.boxShadow = "none";
       }
     }
   });
@@ -5151,6 +5190,14 @@ async function executePlayPurchase() {
   btn.disabled = true;
 
   try {
+    const priceMap = {
+      "surya.pass.1month": "99",
+      "surya.sub.3month": "269",
+      "surya.sub.6month": "479",
+      "surya.sub.12month": "749"
+    };
+    const price = priceMap[selectedSku] || "749";
+
     // 1. Digital Goods API for Android TWA (Google Play Store App)
     if ("getDigitalGoodsService" in window) {
       try {
@@ -5162,7 +5209,6 @@ async function executePlayPurchase() {
           data: { sku: selectedSku }
         }];
 
-        const price = selectedSku.includes("12month") ? "999" : (selectedSku.includes("6month") ? "699" : "199");
         const request = new PaymentRequest(paymentMethods, {
           total: { label: "SuryaSarathi PRO Subscription", amount: { currency: "INR", value: price } }
         });

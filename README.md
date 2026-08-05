@@ -48,9 +48,15 @@ Suryasarthi 108 is a premium, progressive Surya Namaskara (Sun Salutation), Ayur
 
 ## 🧩 Module 1: Core Surya Namaskara Practice Engine
 
-- **FHD Smiling Sun PWA Icon & Dynamic Blinking Notification Engine**:
-  - **High-Resolution FHD Smiling Sun PWA Icons**: Replaced all 4 PWA app launcher icons (`icon-192.png`, `icon-512.png`, `icon-maskable-192.png`, `icon-maskable-512.png`) with an ultra-HD, 3D glassmorphic **Joyful Smiling Sun icon** with golden solar rays and dark navy obsidian background!
-  - **Dynamic Blinking Notification Engine (`blinkAppIconNotification()`)**: When any notification or reminder releases (Water check-in, Best Friend WhatsApp reminder, 5 AM Gita alarm), the header smiling sun icon fast-blinks with a glowing solar pulse (`sunNotifBlink` 0.6s animation), the browser tab title flashes (`☀️ 🔔 New Reminder!`), and the PWA App Badge counter illuminates!
+- **Mass-Adoption PRO Pricing & PRO Feature Lock Engine**:
+  - **4-Tier Pricing Grid (`#paywall-ov`)**: Calculated all pricing tiers based on **₹99 / Month** base rate (₹3.30/day) for maximum market penetration:
+    - **1 Month (30 Days)**: **₹99** (₹3.30 / day · Starter Rate)
+    - **3 Months (90 Days)**: **₹269** (₹2.98 / day · Save 10%)
+    - **6 Months (180 Days)**: **₹479** (₹2.66 / day · Save 20%)
+    - **12 Months (1 Year)**: **₹749** (**Only ₹2.05 / day!** · Save 37% · **BEST VALUE**)
+  - **Free Trial vs. PRO Feature Lock Matrix**:
+    - Free 7-Day Trial includes basic pacer & 7d history.
+    - Advanced features (14d/21d history analytics, unlimited 108 rounds, full Ayurvedic diet timetable & shloka voice audio) are locked with 1-tap PRO upgrade prompts!
 
 - **Unified 12:00 AM Midnight Auto-Unlock Engine (`checkMidnightRollover()`)**:
   - **Simultaneous 5-Lock Auto-Reset**: At 12:00 AM Midnight, all 5 daily locks & tracker states auto-reset simultaneously:

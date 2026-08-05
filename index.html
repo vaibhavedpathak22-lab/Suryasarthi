@@ -525,7 +525,7 @@ footer p{font-size:10px;color:var(--txt2);font-weight:600}
           <div style="font-size:10px;font-weight:700;color:var(--acc-lt)" id="card-water-quick-status">💧 0 / 3 Bottles logged (2.8 L Goal)</div>
         </div>
       </div>
-      <button id="btn-view-diet-plan" onclick="event.stopPropagation(); showDietModal()" style="background:rgba(16,185,129,0.18);border:1px solid #10B981;color:#34D399;font-size:10px;font-weight:800;padding:6px 10px;border-radius:8px;cursor:pointer">
+      <button id="btn-view-diet-plan" onclick="event.stopPropagation(); handleDietPlanClick(event)" style="background:rgba(16,185,129,0.18);border:1px solid #10B981;color:#34D399;font-size:10px;font-weight:800;padding:6px 10px;border-radius:8px;cursor:pointer">
         View Plan
       </button>
     </div>
@@ -769,47 +769,61 @@ footer p{font-size:10px;color:var(--txt2);font-weight:600}
       <div style="display:flex;align-items:center;gap:8px;color:var(--txt)"><span style="color:var(--acc)">✓</span> Offline PWA &amp; Zero Ads Forever</div>
     </div>
 
-    <!-- Subscription Tier Cards -->
+    <!-- Subscription Tier Cards (Calculated based on ₹99 / Month Starter Rate!) -->
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
 
-      <!-- 1 Month Pass (ONE-TIME, NO AUTO-RENEW) -->
+      <!-- 1 Month Pass (₹99 — ₹3.3/day) -->
       <div class="sub-card" id="sub-card-1month" onclick="selectSubTier('surya.pass.1month')"
            style="background:var(--surf);border:1.5px solid var(--bdr);border-radius:14px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;position:relative">
         <div>
-          <div style="font-size:14px;font-weight:800;color:var(--txt)">1-Month Pass</div>
-          <div style="font-size:11px;color:var(--muted)">One-time payment · 30 days · No auto-renew</div>
+          <div style="font-size:14px;font-weight:800;color:var(--txt)">1-Month Plan</div>
+          <div style="font-size:11px;color:#38BDF8">30 Days · Starter Rate</div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:18px;font-weight:900;color:var(--acc-lt)">₹199</div>
-          <div style="font-size:10px;color:var(--muted)">₹199 / mo</div>
+          <div style="font-size:18px;font-weight:900;color:#38BDF8">₹99</div>
+          <div style="font-size:10px;color:var(--muted)">₹3.30 / day</div>
         </div>
       </div>
 
-      <!-- 6 Month Subscription (POPULAR, AUTO-RENEWING) -->
-      <div class="sub-card active" id="sub-card-6month" onclick="selectSubTier('surya.sub.6month')"
-           style="background:var(--surf);border:2px solid var(--acc);border-radius:14px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;position:relative">
-        <div style="position:absolute;top:-10px;right:16px;background:linear-gradient(135deg,#FFD700,#FF8C00);color:#000;font-size:9px;font-weight:900;padding:2px 8px;border-radius:10px;text-transform:uppercase">🔥 SAVE 35% · POPULAR</div>
+      <!-- 3 Month Plan (₹269 — Save 10%) -->
+      <div class="sub-card" id="sub-card-3month" onclick="selectSubTier('surya.sub.3month')"
+           style="background:var(--surf);border:1.5px solid var(--bdr);border-radius:14px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;position:relative">
+        <div style="position:absolute;top:-9px;right:14px;background:linear-gradient(135deg,#38BDF8,#0284C7);color:#031527;font-size:9px;font-weight:900;padding:2px 8px;border-radius:10px;text-transform:uppercase">🔥 SAVE 10%</div>
+        <div>
+          <div style="font-size:14px;font-weight:800;color:var(--txt)">3-Month Plan</div>
+          <div style="font-size:11px;color:#34D399">90 Days · ₹2.98 / day</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:18px;font-weight:900;color:#34D399">₹269</div>
+          <div style="font-size:10px;color:var(--muted)">₹89.6 / mo</div>
+        </div>
+      </div>
+
+      <!-- 6 Month Plan (₹479 — Save 20%) -->
+      <div class="sub-card" id="sub-card-6month" onclick="selectSubTier('surya.sub.6month')"
+           style="background:var(--surf);border:1.5px solid var(--bdr);border-radius:14px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;position:relative">
+        <div style="position:absolute;top:-9px;right:14px;background:linear-gradient(135deg,#A855F7,#7E22CE);color:#FFF;font-size:9px;font-weight:900;padding:2px 8px;border-radius:10px;text-transform:uppercase">⚡ SAVE 20%</div>
         <div>
           <div style="font-size:14px;font-weight:800;color:var(--txt)">6-Month Plan</div>
-          <div style="font-size:11px;color:var(--acc-lt)">Auto-renews via Google Play · ₹116/mo</div>
+          <div style="font-size:11px;color:#C084FC">180 Days · ₹2.66 / day</div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:18px;font-weight:900;color:var(--acc)">₹699</div>
-          <div style="font-size:10px;color:var(--muted)">₹116/mo</div>
+          <div style="font-size:18px;font-weight:900;color:#C084FC">₹479</div>
+          <div style="font-size:10px;color:var(--muted)">₹79.8 / mo</div>
         </div>
       </div>
 
-      <!-- 12 Month Subscription (BEST VALUE, AUTO-RENEWING) -->
-      <div class="sub-card" id="sub-card-12month" onclick="selectSubTier('surya.sub.12month')"
-           style="background:var(--surf);border:1.5px solid var(--bdr);border-radius:14px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;position:relative">
-        <div style="position:absolute;top:-10px;right:16px;background:linear-gradient(135deg,#1DB87F,#5DE0A8);color:#06231A;font-size:9px;font-weight:900;padding:2px 8px;border-radius:10px;text-transform:uppercase">⭐ SAVE 60% · BEST VALUE</div>
+      <!-- 12 Month Annual Pass (₹749 — Save 37% — BEST VALUE) -->
+      <div class="sub-card active" id="sub-card-12month" onclick="selectSubTier('surya.sub.12month')"
+           style="background:rgba(245,158,11,0.12);border:2.5px solid #FBBF24;border-radius:14px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;position:relative;box-shadow:0 0 14px rgba(245,158,11,0.4)">
+        <div style="position:absolute;top:-10px;right:14px;background:linear-gradient(135deg,#F59E0B,#D97706);color:#1E1000;font-size:9.5px;font-weight:900;padding:2px 9px;border-radius:10px;text-transform:uppercase">🌟 SAVE 37% · BEST VALUE (ONLY ₹2.05/DAY)</div>
         <div>
-          <div style="font-size:14px;font-weight:800;color:var(--txt)">12-Month Annual Pass</div>
-          <div style="font-size:11px;color:var(--acc-lt)">Auto-renews via Google Play · ₹83/mo</div>
+          <div style="font-size:14px;font-weight:900;color:#FBBF24">12-Month Annual Pass</div>
+          <div style="font-size:11px;color:#FBBF24;font-weight:700">365 Days · Only ₹2.05 / day</div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:18px;font-weight:900;color:var(--acc-lt)">₹999</div>
-          <div style="font-size:10px;color:var(--muted)">₹83/mo</div>
+          <div style="font-size:20px;font-weight:900;color:#FBBF24">₹749</div>
+          <div style="font-size:10px;color:#FBBF24;font-weight:700">₹62.4 / mo</div>
         </div>
       </div>
 
@@ -984,7 +998,7 @@ footer p{font-size:10px;color:var(--txt2);font-weight:600}
     </div>
     <div class="srow">
       <label>🥗 Ayurvedic Diet &amp; Hydration</label>
-      <button onclick="showDietModal()"
+      <button onclick="event.stopPropagation(); handleDietPlanClick(event)"
         style="background:var(--acc-dim);border:1px solid var(--acc);
                color:var(--acc-lt);border-radius:8px;padding:6px 10px;
                font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">
@@ -1001,7 +1015,7 @@ footer p{font-size:10px;color:var(--txt2);font-weight:600}
     </div>
     <div class="srow">
       <label>🕉 Daily Gita Motivational Quote</label>
-      <button onclick="showGitaQuoteModal()"
+      <button onclick="event.stopPropagation(); showGitaQuoteModal()"
         style="background:var(--acc-dim);border:1px solid var(--acc);
                color:var(--acc-lt);border-radius:8px;padding:6px 10px;
                font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">

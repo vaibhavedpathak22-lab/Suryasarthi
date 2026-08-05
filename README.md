@@ -48,12 +48,9 @@ Suryasarthi 108 is a premium, progressive Surya Namaskara (Sun Salutation), Ayur
 
 ## 🧩 Module 1: Core Surya Namaskara Practice Engine
 
-- **Mass-Adoption PRO Pricing & PRO Feature Lock Engine**:
-  - **4-Tier Pricing Grid (`#paywall-ov`)**: Calculated all pricing tiers based on **₹99 / Month** base rate (₹3.30/day) for maximum market penetration:
-    - **1 Month (30 Days)**: **₹99** (₹3.30 / day · Starter Rate)
-    - **3 Months (90 Days)**: **₹269** (₹2.98 / day · Save 10%)
-    - **6 Months (180 Days)**: **₹479** (₹2.66 / day · Save 20%)
-    - **12 Months (1 Year)**: **₹749** (**Only ₹2.05 / day!** · Save 37% · **BEST VALUE**)
+- **Exact User-Provided SURYA SARTHI Logo & Branding**:
+  - **Exact Image Copied**: Directly copied your exact uploaded logo image file (`SURYA SARTHI` meditating yogi emblem with `INNER HARMONY` tagline) to all 4 PWA app icon files (`icon-192.png`, `icon-512.png`, `icon-maskable-192.png`, `icon-maskable-512.png`).
+  - **Service Worker Cache-Bust (`surya-v60`)**: Bumped SW cache version to `surya-v60` so all mobile devices automatically display the exact uploaded logo icon upon installation!
   - **Free Trial vs. PRO Feature Lock Matrix**:
     - Free 7-Day Trial includes basic pacer & 7d history.
     - Advanced features (14d/21d history analytics, unlimited 108 rounds, full Ayurvedic diet timetable & shloka voice audio) are locked with 1-tap PRO upgrade prompts!

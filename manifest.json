@@ -1,7 +1,7 @@
 {
-  "name": "Surya Namaskara Counter",
-  "short_name": "Surya Namaskara",
-  "description": "Sanskrit mantra-guided sun salutation with progressive daily sets",
+  "name": "Surya Sarthi - Inner Harmony",
+  "short_name": "Surya Sarthi",
+  "description": "Surya Sarthi 108 - Inner Harmony: Daily Surya Namaskara, Vedic Mantras, Ayurvedic Diet & Pranayama",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

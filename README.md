@@ -29,15 +29,37 @@
 
 ---
 
+## 🎨 Visual Aesthetics & FHD Display Design System
+
+Suryasarthi 108 is a premium, progressive Surya Namaskara (Sun Salutation), Ayurvedic Hydration & Diet, and Classical Pranayama PWA application built for maximum visual appeal on Full HD (1080p / high-DPI OLED / AMOLED / IPS) displays.
+
+- **Modern High-Resolution Typography**:
+  - Integrated Google Fonts (`'Outfit'` & `'Inter'`) for ultra-clean tabular digits, sharp headings, and crystal clear readability on 1080p/4K screens.
+  - Devanagari Sanskrit mantras styled with `'Noto Sans Devanagari'` and radiant solar gold text shadows.
+- **Deep Obsidian Emerald Palette & Glassmorphic Surfaces**:
+  - Dark Mode Background: Deep obsidian dark background (`#060D0A`) with a subtle radial spotlight gradient.
+  - Glassmorphic Cards: `backdrop-filter: blur(16px)` card surfaces with translucent borders (`rgba(52, 211, 153, 0.2)`), subtle inset light highlights, and soft drop-shadows.
+- **Neon Gradients & Display Glows**:
+  - Solar-Emerald Ring SVG (`url(#ringGrad)`) with electric gradient stroke and neon drop-shadow glow.
+  - 3D Gradient Buttons with tactile scale responses and vibrant glowing box-shadows.
+  - Radiant Gold Solar Badges (`#FBBF24`) and Electric Mint Green accents (`#34D399`).
+
+---
+
 ## 🧩 Module 1: Core Surya Namaskara Practice Engine
 
-The Core Practice Engine governs the physical execution of Surya Namaskara, supporting 12 dynamic poses, customizable pace, smart goal scaling, and rest intervals.
+- **FHD Smiling Sun PWA Icon & Dynamic Blinking Notification Engine**:
+  - **High-Resolution FHD Smiling Sun PWA Icons**: Replaced all 4 PWA app launcher icons (`icon-192.png`, `icon-512.png`, `icon-maskable-192.png`, `icon-maskable-512.png`) with an ultra-HD, 3D glassmorphic **Joyful Smiling Sun icon** with golden solar rays and dark navy obsidian background!
+  - **Dynamic Blinking Notification Engine (`blinkAppIconNotification()`)**: When any notification or reminder releases (Water check-in, Best Friend WhatsApp reminder, 5 AM Gita alarm), the header smiling sun icon fast-blinks with a glowing solar pulse (`sunNotifBlink` 0.6s animation), the browser tab title flashes (`☀️ 🔔 New Reminder!`), and the PWA App Badge counter illuminates!
 
-- **1-Tap Quick Water Logging (`quickLogWaterAndSpeak()`) & 100% Goal Locking**:
-  Prominent **"💧 +1 Drink Water"** single-click button on the main dashboard card (`#card-view-diet-plan`) allows logging water intake in 1 click without opening any modal.
-  - **100% Goal Completion Locking**: Once today's water target is completed (`logged >= target`), the button automatically locks into a golden **`🎉 Water Goal Completed!`** badge, disabling further clicks and playing celebratory TTS speech if clicked.
-  - **12:00 AM Midnight Auto-Unlock**: On date rollover at 12 AM Midnight (`scheduleMidnightRollover()`), the tracker resets for the new date and unlocks the **"💧 +1 Drink Water"** button for your next day's practice!
-  - Live progress bar (`#card-water-progress-bar`) and text status (`#card-water-quick-status`) update instantly on the main screen.
+- **Unified 12:00 AM Midnight Auto-Unlock Engine (`checkMidnightRollover()`)**:
+  - **Simultaneous 5-Lock Auto-Reset**: At 12:00 AM Midnight, all 5 daily locks & tracker states auto-reset simultaneously:
+    1. **Target Goal**: Recalculates new daily goal target sets (`+4` increment, capped at 108).
+    2. **Water Button**: Unlocks the **"💧 +1 Drink Water"** button (`disabled = false`, active style) and resets intake status & live progress bar to `0%`.
+    3. **Pranayama Access**: Resets `pranaFinishedToday = false` and `pranaClosedToday = false`.
+    4. **Diet & Hydration Plan**: Calls `updateDietPlanButtonLockUI()` to refresh button lock states for the new day.
+    5. **Diet Reminders**: Automatically clears one-off `dietOffDate` overrides.
+  - **Startup Verification**: Launches `checkMidnightRollover()` immediately upon app initialization so morning launches instantly start with a fresh, fully unlocked experience!
 - **Lockscreen & Closed-App System Notification Popups**:
   - Scheduled hydration reminders (10 AM, 12 PM, 3 PM, 5 PM, 8 PM) dispatch system notification popups with inline action buttons (`💧 +1 Bottle Confirmed`, `🥗 View Tracker`).
   - Tapping the notification or action button on the lockscreen opens/focuses the app, logs the bottle, and speaks motivational TTS speech!

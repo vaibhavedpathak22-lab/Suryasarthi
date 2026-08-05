@@ -3,167 +3,234 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#0F6E56">
+<meta name="theme-color" content="#070B14">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Surya Namaskara">
 <title>Surya Namaskara</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@700;900&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@700;900&display=swap">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
 :root{
-  --bg:#0B1210;--surf:#162019;--surf2:#1E2D24;
-  --acc:#1DB87F;--acc-dim:#0F6E56;--acc-lt:#5DE0A8;
-  --txt:#EEF5F0;--txt2:#9DB8A8;--muted:#5A7065;
-  --bdr:#243328;--warn:#E8A030;--danger:#D85A30;--r:14px;
+  --bg:#070B14;
+  --bg-gradient:radial-gradient(circle at 50% 0%,#111A2E 0%,#070B14 75%);
+  --surf:rgba(19, 28, 46, 0.85);
+  --surf2:rgba(28, 42, 69, 0.9);
+  --surf-card:linear-gradient(145deg, rgba(23, 35, 58, 0.9) 0%, rgba(12, 19, 33, 0.95) 100%);
+  --acc:#F59E0B;
+  --acc-dim:rgba(245, 158, 11, 0.18);
+  --acc-lt:#FBBF24;
+  --sec:#38BDF8;
+  --sec-lt:#60A5FA;
+  --gold:#F97316;
+  --gold-lt:#FBBF24;
+  --txt:#F9FAFB;
+  --txt2:#93C5FD;
+  --muted:#60A5FA;
+  --bdr:rgba(96, 165, 250, 0.2);
+  --warn:#F97316;
+  --danger:#EF4444;
+  --r:16px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
-html,body{height:100%;background:var(--bg);color:var(--txt);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-  overscroll-behavior:none;user-select:none}
+html,body{height:100%;background:var(--bg);background-image:var(--bg-gradient);color:var(--txt);
+  font-family:'Outfit','Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  overscroll-behavior:none;user-select:none;background-attachment:fixed;}
 body{display:flex;flex-direction:column;align-items:center;
   padding:env(safe-area-inset-top,1rem) 1rem env(safe-area-inset-bottom,.75rem);
   min-height:100dvh;gap:.6rem}
 .app{width:100%;max-width:420px;display:flex;flex-direction:column;gap:.6rem;flex:1}
 
 /* ── header ── */
-header{display:flex;justify-content:space-between;align-items:center;padding:2px 0}
+header{display:flex;justify-content:space-between;align-items:center;padding:4px 0}
 .prog-name{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-  font-size:18px;font-weight:900;letter-spacing:.04em;
+  font-family:'Outfit','Noto Sans Devanagari',sans-serif;
+  font-size:20px;font-weight:900;letter-spacing:.05em;
   line-height:1.2;white-space:nowrap;
-  background:linear-gradient(135deg,#FFD700 0%,#5DE0A8 55%,#1DB87F 100%);
+  background:linear-gradient(135deg,#FBBF24 0%,#F97316 50%,#EF4444 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
   background-clip:text;
-  filter:drop-shadow(0 1px 6px rgba(29,184,127,0.35));
+  filter:drop-shadow(0 2px 10px rgba(245,158,11,0.45));
 }
-#day-label{font-size:10px;color:var(--muted);margin-top:1px}
-.gear{background:none;border:none;color:var(--muted);padding:4px;cursor:pointer;
-  display:flex;flex-shrink:0}
+#day-label{font-size:10.5px;color:var(--txt2);margin-top:1px;font-weight:600}
+.gear{background:none;border:none;color:var(--txt2);padding:4px;cursor:pointer;
+  display:flex;flex-shrink:0;transition:transform .2s ease}
+.gear:hover{transform:rotate(30deg);color:var(--acc-lt)}
 
 /* ── stats 4-up ── */
 .stats{display:flex;gap:6px}
-.stat{flex:1;background:var(--surf);border-radius:12px;padding:8px 4px;
-  text-align:center;border:1px solid var(--bdr)}
-.stat .lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
-.stat .val{font-size:18px;font-weight:700;margin-top:1px}
-.stat.hi{background:var(--acc-dim);border-color:var(--acc)}
-.stat.hi .val{color:var(--acc-lt)}
+.stat{flex:1;background:var(--surf-card);border-radius:14px;padding:9px 4px;
+  text-align:center;border:1px solid var(--bdr);backdrop-filter:blur(12px);
+  box-shadow:0 4px 16px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.08);
+  transition:all .2s ease}
+.stat .lbl{font-size:9.5px;color:var(--txt2);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.stat .val{font-size:19px;font-weight:800;margin-top:2px;color:var(--txt);font-variant-numeric:tabular-nums}
+
+.stat.stat-today{background:linear-gradient(135deg,rgba(6,182,212,0.2),rgba(8,145,178,0.1));border:1.5px solid #06B6D4;box-shadow:0 0 16px rgba(6,182,212,0.3)}
+.stat.stat-today .lbl{color:#7DD3FC}
+.stat.stat-today .val{color:#22D3EE;text-shadow:0 0 10px rgba(34,211,238,0.5)}
+
+.stat.hi{background:linear-gradient(135deg,rgba(245,158,11,0.22),rgba(217,119,6,0.12));border:1.5px solid #F59E0B;box-shadow:0 0 20px rgba(245,158,11,0.35)}
+.stat.hi .lbl{color:#FDE68A}
+.stat.hi .val{color:var(--acc-lt);text-shadow:0 0 10px rgba(251,191,36,0.5)}
+
+.stat.stat-streak{background:linear-gradient(135deg,rgba(16,185,129,0.2),rgba(5,150,105,0.1));border:1.5px solid #10B981;box-shadow:0 0 16px rgba(16,185,129,0.3)}
+.stat.stat-streak .lbl{color:#6EE7B7}
+.stat.stat-streak .val{color:#34D399;text-shadow:0 0 10px rgba(52,211,153,0.5)}
+
+.stat.stat-total{background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(124,58,237,0.1));border:1.5px solid #A855F7;box-shadow:0 0 16px rgba(168,85,247,0.3)}
+.stat.stat-total .lbl{color:#D8B4FE}
+.stat.stat-total .val{color:#C084FC;text-shadow:0 0 10px rgba(192,132,252,0.5)}
 
 /* ── time row ── */
 .time-row{display:flex;gap:6px}
-.time-card{flex:1;background:var(--surf);border-radius:11px;
-  padding:7px 10px;border:1px solid var(--bdr);
-  display:flex;align-items:center;gap:8px}
-.time-card svg{flex-shrink:0;color:var(--acc)}
-.time-card .tlbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
-.time-card .tval{font-size:15px;font-weight:700;color:var(--acc-lt);margin-top:1px}
+.time-card{flex:1;background:linear-gradient(135deg,rgba(14,165,233,0.15),rgba(2,132,199,0.08));border-radius:13px;
+  padding:8px 11px;border:1.5px solid #38BDF8;backdrop-filter:blur(12px);
+  display:flex;align-items:center;gap:8px;box-shadow:0 0 16px rgba(56,189,248,0.35)}
+.time-card svg{flex-shrink:0;color:#38BDF8;filter:drop-shadow(0 0 8px rgba(56,189,248,0.6))}
+.time-card .tlbl{font-size:9.5px;color:#7DD3FC;text-transform:uppercase;letter-spacing:.05em;font-weight:800}
+.time-card .tval{font-size:15.5px;font-weight:900;color:#38BDF8;margin-top:1px;font-variant-numeric:tabular-nums;text-shadow:0 0 12px rgba(56,189,248,0.6)}
 
 /* ── calories row ── */
 .cal-row{display:flex;gap:6px}
-.cal-card{flex:1;background:var(--surf);border-radius:11px;
-  padding:7px 10px;border:1px solid var(--bdr);
-  display:flex;align-items:center;gap:8px}
-.cal-card svg{flex-shrink:0;color:var(--warn)}
-.cal-card .clbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
-.cal-card .cval{font-size:15px;font-weight:700;color:var(--warn);margin-top:1px}
+.cal-card{flex:1;background:linear-gradient(135deg,rgba(255,107,107,0.15),rgba(239,68,68,0.08));border-radius:13px;
+  padding:8px 11px;border:1.5px solid #FF6B6B;backdrop-filter:blur(12px);
+  display:flex;align-items:center;gap:8px;box-shadow:0 0 16px rgba(255,107,107,0.35)}
+.cal-card svg{flex-shrink:0;color:#FF6B6B;filter:drop-shadow(0 0 8px rgba(255,107,107,0.6))}
+.cal-card .clbl{font-size:9.5px;color:#FCA5A5;text-transform:uppercase;letter-spacing:.05em;font-weight:800}
+.cal-card .cval{font-size:15.5px;font-weight:900;color:#FF6B6B;margin-top:1px;font-variant-numeric:tabular-nums;text-shadow:0 0 12px rgba(255,107,107,0.6)}
 
 /* ── ring ── */
 .ring-wrap{position:relative;width:220px;height:220px;margin:.1rem auto;
   display:flex;align-items:center;justify-content:center}
 .ring-wrap svg{position:absolute;top:0;left:0;transform:rotate(-90deg)}
 .rc{text-align:center;padding:0 .7rem;z-index:1}
-.mantra-roman{font-size:11px;font-weight:600;color:var(--acc-lt);min-height:14px;opacity:.8}
-.mantra-deva{font-size:18px;font-weight:700;color:var(--acc-lt);min-height:24px;
-  letter-spacing:.03em}
-.mantra-mean{font-size:9.5px;color:var(--txt2);margin-top:1px;min-height:12px;font-style:italic}
-.pose-name{font-size:13px;font-weight:600;margin-top:4px;min-height:16px;color:var(--txt2)}
-.pose-breath{font-size:13px;font-weight:700;margin-top:3px;min-height:15px}
-.inhale{color:#5DE0A8}.exhale{color:#E8A030}.hold{color:#9DB8A8}
-.pnum{font-size:9px;color:var(--muted);margin-top:4px}
-.tbar-wrap{margin-top:5px;background:var(--bdr);border-radius:3px;height:3px;
-  width:100px;margin-inline:auto}
-.tbar{height:3px;border-radius:3px;background:var(--acc);width:100%;transition:width .1s linear}
+.mantra-roman{font-size:11.5px;font-weight:700;color:var(--acc-lt);min-height:15px;opacity:.9;letter-spacing:.02em}
+.mantra-deva{font-size:19px;font-weight:900;color:var(--gold-lt);min-height:25px;
+  letter-spacing:.04em;text-shadow:0 0 12px rgba(251,191,36,0.4)}
+.mantra-mean{font-size:10px;color:var(--txt2);margin-top:1px;min-height:13px;font-style:italic;font-weight:500}
+.pose-name{font-size:13.5px;font-weight:700;margin-top:4px;min-height:17px;color:var(--txt)}
+.pose-breath{font-size:13.5px;font-weight:800;margin-top:3px;min-height:16px}
+.inhale{color:#60A5FA;text-shadow:0 0 8px rgba(96,165,250,0.4)}.exhale{color:#F59E0B;text-shadow:0 0 8px rgba(245,158,11,0.4)}.hold{color:#93C5FD}
+.pnum{font-size:9.5px;color:var(--txt2);margin-top:4px;font-weight:700}
+.tbar-wrap{margin-top:6px;background:var(--surf2);border-radius:4px;height:5px;
+  width:110px;margin-inline:auto;overflow:hidden}
+.tbar{height:5px;border-radius:4px;background:linear-gradient(90deg,#38BDF8 0%,#FBBF24 100%);width:100%;transition:width .1s linear;box-shadow:0 0 10px rgba(56,189,248,0.6)}
 
 /* ── dots ── */
-.dots{display:flex;gap:4px;align-items:center;flex-wrap:wrap;
-  justify-content:center;min-height:26px}
-.dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--bdr);
-  font-size:8px;font-weight:700;color:var(--muted);
-  display:flex;align-items:center;justify-content:center;transition:all .2s}
-/* completed from yesterday's base count */
-.dot.done{background:var(--acc-dim);border-color:var(--acc);color:var(--acc-lt)}
-/* completed AND part of today's new +4 target */
-.dot.done.new-today{background:var(--acc);border-color:var(--acc);color:#06231A}
-/* today's new target dots — not yet completed */
-.dot.target{border-color:var(--acc-lt);border-style:dashed;color:var(--acc-lt)}
+.dots{display:flex;gap:7px;align-items:center;flex-wrap:wrap;
+  justify-content:center;min-height:34px;padding:4px 0}
+.dot{position:relative;width:24px;height:24px;border-radius:50%;border:2px solid var(--bdr);
+  font-size:9.5px;font-weight:900;color:var(--muted);
+  display:flex;align-items:center;justify-content:center;transition:all .25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-variant-numeric:tabular-nums}
+/* completed dots — glowing sun disc with radiant side rays */
+.dot.done{background:linear-gradient(135deg,#F59E0B,#D97706);border:2px solid #FBBF24;color:#1E1000;font-weight:900;box-shadow:0 0 10px rgba(245,158,11,0.5),inset 0 1px 0 rgba(255,255,255,0.4)}
+.dot.done::before{content:'';position:absolute;inset:-5px;border-radius:50%;background:radial-gradient(circle,transparent 60%,rgba(249,115,22,0.35) 70%,transparent 100%);pointer-events:none;animation:sunRaysRotate 10s linear infinite}
+.dot.done.new-today{background:linear-gradient(135deg,#F59E0B,#D97706);border-color:#FBBF24;color:#1E1000;box-shadow:0 0 12px rgba(245,158,11,0.6)}
+
+/* 🌟 Last Completed Number — Blinking & Pulsing Solar Sunburst Landmark */
+.dot.done.last-done{animation:blinkSunburst 1.4s infinite ease-in-out;background:linear-gradient(135deg,#FBBF24,#F97316);border-color:#FFF5C0;color:#1E1000;box-shadow:0 0 16px rgba(251,191,36,0.9),0 0 25px rgba(249,115,22,0.7);z-index:2}
+
+@keyframes blinkSunburst{
+  0%,100%{transform:scale(1);box-shadow:0 0 10px rgba(245,158,11,0.5),0 0 15px rgba(251,191,36,0.4);opacity:1}
+  50%{transform:scale(1.22);box-shadow:0 0 22px rgba(251,191,36,0.9),0 0 35px rgba(249,115,22,0.8),0 0 45px rgba(251,191,36,0.6);opacity:0.85;border-color:#FFF5C0}
+}
+@keyframes sunRaysRotate{
+  0%{transform:rotate(0deg)}
+  100%{transform:rotate(360deg)}
+}
+
+@keyframes sunPulseGlow {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 12px rgba(251,191,36,0.6), 0 0 20px rgba(245,158,11,0.3); border-color: #FBBF24; }
+  50% { transform: scale(1.08); box-shadow: 0 0 22px rgba(251,191,36,0.9), 0 0 35px rgba(249,115,22,0.7); border-color: #FFF5C0; }
+}
+
+@keyframes sunNotifBlink {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 14px rgba(251,191,36,0.7); border-color: #FBBF24; }
+  25%, 75% { transform: scale(1.22); box-shadow: 0 0 30px rgba(255,107,107,1), 0 0 45px rgba(251,191,36,1); border-color: #FF6B6B; filter: brightness(1.3); }
+  50% { transform: scale(0.95); box-shadow: 0 0 10px rgba(245,158,11,0.4); border-color: #F59E0B; }
+}
+
+.sun-blinking-notif {
+  animation: sunNotifBlink 0.6s infinite ease-in-out !important;
+}
+
+/* today's new target dots — dashed solar amber circle */
+.dot.target{border-color:#F59E0B;border-style:dashed;color:#FBBF24;background:rgba(245,158,11,0.08)}
 /* tomorrow's locked target dots */
-.dot.target.locked{border-color:var(--warn);border-style:dashed;color:var(--warn);opacity:0.85;font-size:7.5px}
+.dot.target.locked{border-color:rgba(245,158,11,0.5);border-style:dashed;color:rgba(245,158,11,0.7);opacity:0.85;font-size:8px}
 /* currently active pose */
-.dot.active{border-color:var(--acc-lt);border-style:solid;color:var(--acc-lt);animation:pulse 1s infinite}
+.dot.active{border-color:var(--gold-lt);border-style:solid;color:var(--gold-lt);animation:pulse 1.2s infinite ease-in-out}
 @keyframes pulse{
-  0%,100%{box-shadow:0 0 0 0 rgba(93,224,168,.4)}
-  50%{box-shadow:0 0 0 5px rgba(93,224,168,0)}}
+  0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,.5);transform:scale(1)}
+  50%{box-shadow:0 0 0 6px rgba(251,191,36,0);transform:scale(1.08)}}
 
 /* ── pace row ── */
-.pace-row{display:flex;align-items:center;gap:8px;justify-content:center}
-.pace-row span{font-size:11px;color:var(--muted)}
-.spd{width:34px;height:34px;border-radius:10px;background:var(--surf);
-  border:1.5px solid var(--bdr);color:var(--txt2);font-size:18px;font-weight:700;
-  display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1}
-.spd:active{background:var(--surf2);border-color:var(--acc)}
-.spd-v{font-size:15px;font-weight:700;min-width:72px;text-align:center;
-  color:var(--acc-lt)}
-button{font-family:inherit;border:none;cursor:pointer;transition:transform .1s,opacity .15s}
-button:active{transform:scale(.95)}
+.pace-row{display:flex;align-items:center;gap:10px;justify-content:center}
+.pace-row span{font-size:11.5px;color:#38BDF8;font-weight:800}
+.spd{width:36px;height:36px;border-radius:11px;background:rgba(245,158,11,0.12);
+  border:1.5px solid #F59E0B;color:#FBBF24;font-size:19px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1;
+  box-shadow:0 0 10px rgba(245,158,11,0.35);transition:all .2s ease}
+.spd:hover{background:rgba(245,158,11,0.25);border-color:#FBBF24;color:#FFF;box-shadow:0 0 16px rgba(251,191,36,0.6)}
+.spd:active{transform:scale(.92)}
+.spd-v{font-size:16px;font-weight:900;min-width:76px;text-align:center;
+  color:#FBBF24;font-variant-numeric:tabular-nums;text-shadow:0 0 10px rgba(251,191,36,0.5)}
+button{font-family:inherit;border:none;cursor:pointer;transition:transform .12s ease,box-shadow .2s ease,background .2s ease}
+button:active{transform:scale(.96)}
 
 /* ── controls ── */
-.ctrl{display:flex;gap:8px;align-items:center}
-.btn-m{flex:1;height:50px;border-radius:var(--r);font-size:16px;font-weight:700;
-  background:var(--acc);color:#06231A;display:flex;align-items:center;
-  justify-content:center;gap:8px}
-.btn-m .clock{font-size:13px;font-weight:600;opacity:.85;font-variant-numeric:tabular-nums}
-.btn-i{width:46px;height:46px;border-radius:12px;background:var(--surf);
-  border:1px solid var(--bdr);color:var(--txt2);
-  display:flex;align-items:center;justify-content:center}
-.btn-i svg{width:19px;height:19px}
-.btn-i.on{border-color:var(--acc);color:var(--acc)}
+.ctrl{display:flex;gap:10px;align-items:center}
+.btn-m{flex:1;height:52px;border-radius:16px;font-size:16.5px;font-weight:800;
+  background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);color:#1E1000;display:flex;align-items:center;
+  justify-content:center;gap:8px;box-shadow:0 4px 20px rgba(245,158,11,0.45);letter-spacing:.02em}
+.btn-m .clock{font-size:13.5px;font-weight:700;opacity:.9;font-variant-numeric:tabular-nums}
+.btn-i{width:48px;height:48px;border-radius:14px;background:rgba(15,23,42,0.6);
+  border:1.5px solid #38BDF8;color:#38BDF8;backdrop-filter:blur(12px);
+  display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(56,189,248,0.3)}
+.btn-i svg{width:20px;height:20px}
+.btn-i.on{border-color:#FBBF24;color:#FBBF24;background:rgba(245,158,11,0.15);box-shadow:0 0 16px rgba(251,191,36,0.5)}
 
 /* ── history chart ── */
-.hist{background:var(--surf);border-radius:var(--r);padding:.8rem;border:1px solid var(--bdr)}
-.htit{font-size:11px;color:var(--txt2);margin-bottom:8px;font-weight:600;
+.hist{background:linear-gradient(145deg,rgba(23,35,58,0.95),rgba(12,19,33,0.98));border-radius:18px;padding:1.1rem;border:1.8px solid #3B82F6;backdrop-filter:blur(16px);box-shadow:0 8px 32px rgba(0,0,0,0.6),0 0 24px rgba(59,130,246,0.35),inset 0 1px 0 rgba(255,255,255,0.15)}
+.htit{font-size:13px;color:var(--txt);margin-bottom:10px;font-weight:800;
   display:flex;justify-content:space-between;align-items:center}
-.htit span{font-size:9px;color:var(--muted)}
-.chart-area{position:relative;height:72px}
-.bars{display:flex;gap:5px;align-items:flex-end;height:54px}
+#chart-title{font-size:13px;font-weight:800;background:linear-gradient(135deg,#FBBF24 0%,#F97316 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 2px 8px rgba(251,191,36,0.35))}
+.chart-tabs{display:flex;gap:6px;margin:8px 0 12px 0}
+.chart-tab{flex:1;padding:7px 10px;border-radius:10px;background:rgba(30,41,59,0.8);border:1.5px solid rgba(56,189,248,0.4);color:#94A3B8;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s ease;box-shadow:0 0 8px rgba(56,189,248,0.15)}
+.chart-tab.active{background:linear-gradient(135deg,#3B82F6,#1D4ED8);border-color:#60A5FA;color:#FFF;box-shadow:0 0 14px rgba(59,130,246,0.6);font-weight:800}
+.chart-area{position:relative;height:74px}
+.bars{display:flex;gap:6px;align-items:flex-end;height:56px}
 .bc{flex:1;display:flex;flex-direction:column;align-items:center;gap:0}
-.bar-stack{width:100%;position:relative;border-radius:4px 4px 2px 2px;
+.bar-stack{width:100%;position:relative;border-radius:5px 5px 3px 3px;
   display:flex;flex-direction:column;justify-content:flex-end}
-.bar-bg{width:100%;border-radius:4px 4px 2px 2px;background:var(--bdr);
+.bar-bg{width:100%;border-radius:5px 5px 3px 3px;background:rgba(59,130,246,0.15);
   position:absolute;bottom:0;left:0}
-.bar-fill{width:100%;border-radius:4px 4px 2px 2px;
-  background:var(--acc-lt);position:absolute;bottom:0;left:0;transition:height .3s}
-.bar-fill.today{background:var(--acc)}
-.bar-cnt{font-size:9px;color:var(--muted);text-align:center;margin-bottom:2px;
-  min-height:11px}
-.blbl{font-size:9px;color:var(--muted);margin-top:3px;text-align:center}
-.blbl.today{color:var(--acc-lt)}
+.bar-fill{width:100%;border-radius:5px 5px 3px 3px;
+  background:linear-gradient(180deg,#60A5FA,#3B82F6);position:absolute;bottom:0;left:0;transition:height .35s ease;box-shadow:0 0 10px rgba(96,165,250,0.5)}
+.bar-fill.today{background:linear-gradient(180deg,#FBBF24,#F59E0B);box-shadow:0 0 14px rgba(251,191,36,0.7)}
+.bar-cnt{font-size:9.5px;color:var(--txt2);text-align:center;margin-bottom:2px;
+  min-height:11px;font-weight:700}
+.blbl{font-size:9.5px;color:var(--txt2);margin-top:4px;text-align:center;font-weight:600}
+.blbl.today{color:var(--gold-lt);font-weight:800}
 
 /* ── break overlay ── */
-.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);
+.ov{display:none;position:fixed;inset:0;background:rgba(7,11,20,.96);backdrop-filter:blur(16px);
   z-index:100;flex-direction:column;align-items:center;justify-content:center;
-  gap:.85rem;padding:2rem;text-align:center}
+  gap:1rem;padding:2rem;text-align:center}
 .ov.show{display:flex}
-.ov h2{font-size:20px;font-weight:700}
-.ov p{font-size:13px;color:var(--txt2);max-width:280px;line-height:1.6}
-.ov .big{font-size:52px}
-.ov .deva-big{font-size:22px;color:var(--acc-lt);font-weight:700}
-.ov .ok{background:var(--acc);color:#06231A;font-size:15px;font-weight:700;
-  padding:12px 32px;border-radius:var(--r);border:none;cursor:pointer}
+.ov h2{font-size:22px;font-weight:800;color:var(--txt)}
+.ov p{font-size:13.5px;color:var(--txt2);max-width:290px;line-height:1.6}
+.ov .big{font-size:54px;font-weight:900;color:var(--gold-lt);text-shadow:0 0 20px rgba(251,191,36,0.4)}
+.ov .deva-big{font-size:24px;color:var(--acc-lt);font-weight:800}
+.ov .ok{background:linear-gradient(135deg,#F59E0B,#D97706);color:#1E1000;font-size:16px;font-weight:800;
+  padding:13px 36px;border-radius:14px;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(245,158,11,0.4)}
 
 
 /* ═══ PRANAYAMA OVERLAY ═══ */
@@ -171,13 +238,14 @@ button:active{transform:scale(.95)}
   display:none;
   position:fixed;
   top:0;left:0;right:0;bottom:0;
-  background:rgba(5,14,8,.98);
+  background:rgba(15,10,28,.98);
+  backdrop-filter:blur(20px);
   z-index:9999;
   flex-direction:column;
   align-items:center;
   padding:env(safe-area-inset-top,1.2rem) 1rem env(safe-area-inset-bottom,1rem);
   overflow-y:auto;
-  gap:.7rem;
+  gap:.8rem;
   -webkit-overflow-scrolling:touch;
 }
 .prana-ov.show{
@@ -188,167 +256,177 @@ button:active{transform:scale(.95)}
   display:flex;justify-content:space-between;align-items:center;
 }
 .prana-badge{
-  font-size:10px;color:var(--muted);background:var(--surf);
-  padding:3px 9px;border-radius:20px;border:1px solid var(--bdr);
+  font-size:10.5px;color:var(--txt2);background:rgba(139,92,246,0.18);
+  padding:4px 12px;border-radius:20px;border:1px solid rgba(168,85,247,0.3);font-weight:700;
 }
-.prana-label{font-size:12px;font-weight:700;color:var(--acc-lt)}
+.prana-label{font-size:12.5px;font-weight:800;color:#C084FC}
 .prana-close-x{
-  background:none;border:none;color:var(--muted);
-  font-size:22px;cursor:pointer;line-height:1;padding:4px;
+  background:none;border:none;color:var(--txt2);
+  font-size:24px;cursor:pointer;line-height:1;padding:4px;transition:color .2s;
 }
+.prana-close-x:hover{color:var(--danger)}
 /* title */
 .prana-title-block{text-align:center;width:100%;max-width:420px}
 .prana-name-hi{
-  font-family:"Noto Sans Devanagari",serif;
-  font-size:28px;font-weight:900;display:block;
-  background:linear-gradient(135deg,#FFD700 0%,#5DE0A8 60%,#1DB87F 100%);
+  font-family:"Noto Sans Devanagari",'Outfit',sans-serif;
+  font-size:30px;font-weight:900;display:block;
+  background:linear-gradient(135deg,#E9D5FF 0%,#C084FC 50%,#A855F7 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
   background-clip:text;line-height:1.25;letter-spacing:.04em;
+  filter:drop-shadow(0 2px 12px rgba(168,85,247,0.45));
 }
-.prana-name-en{font-size:16px;font-weight:700;color:var(--txt2);margin-top:1px}
-.prana-desc-txt{font-size:11px;color:var(--muted);font-style:italic;margin-top:3px}
+.prana-name-en{font-size:16.5px;font-weight:800;color:var(--txt2);margin-top:2px}
+.prana-desc-txt{font-size:11.5px;color:#C084FC;font-style:italic;margin-top:4px;font-weight:500}
 /* progress */
-.prana-bars{width:100%;max-width:420px;display:flex;flex-direction:column;gap:5px}
-.pbar-row{display:flex;align-items:center;gap:8px}
-.pbar-lbl{font-size:9px;color:var(--muted);min-width:36px;text-transform:uppercase;letter-spacing:.04em}
-.pbar-track{flex:1;height:7px;background:var(--bdr);border-radius:4px;overflow:hidden}
-.pbar-fill{height:100%;border-radius:4px;background:var(--acc);width:0%;transition:width .5s linear}
-.pbar-fill.total{background:linear-gradient(90deg,#B8860B,#1DB87F)}
-.prana-time-rem{font-size:11px;color:var(--acc-lt);text-align:center}
+.prana-bars{width:100%;max-width:420px;display:flex;flex-direction:column;gap:6px}
+.pbar-row{display:flex;align-items:center;gap:10px}
+.pbar-lbl{font-size:9.5px;color:var(--txt2);min-width:40px;text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+.pbar-track{flex:1;height:8px;background:rgba(139,92,246,0.2);border-radius:4px;overflow:hidden}
+.pbar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#C084FC,#8B5CF6);width:0%;transition:width .5s linear;box-shadow:0 0 8px rgba(168,85,247,0.4)}
+.pbar-fill.total{background:linear-gradient(90deg,#38BDF8,#A855F7)}
+.prana-time-rem{font-size:11.5px;color:#C084FC;text-align:center;font-weight:700}
 /* step card */
 .prana-step-card{
   width:100%;max-width:420px;
-  background:var(--surf);border-radius:16px;border:1px solid var(--bdr);
-  padding:1.1rem 1.2rem;flex:1;min-height:110px;
+  background:linear-gradient(145deg,rgba(30,27,75,0.9),rgba(15,23,42,0.95));border-radius:18px;border:1px solid rgba(168,85,247,0.3);backdrop-filter:blur(16px);
+  padding:1.2rem 1.3rem;flex:1;min-height:115px;
   display:flex;flex-direction:column;justify-content:center;gap:8px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.5);
 }
 .prana-step-badge{
-  font-size:10px;color:var(--muted);font-weight:600;
+  font-size:10.5px;color:#C084FC;font-weight:700;
 }
 .prana-step-txt{
-  font-size:15px;font-weight:600;color:var(--txt);
-  line-height:1.5;text-align:center;
+  font-size:15.5px;font-weight:700;color:var(--txt);
+  line-height:1.55;text-align:center;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
 }
-.prana-txt-full{line-height:1.5;color:var(--txt)}
+.prana-txt-full{line-height:1.55;color:var(--txt)}
 .prana-count-card{
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%;
 }
 .prana-count-action{
-  font-size:17px;font-weight:800;color:var(--acc-lt);letter-spacing:.02em;text-align:center;
+  font-size:18px;font-weight:800;color:#C084FC;letter-spacing:.02em;text-align:center;
+  text-shadow:0 0 10px rgba(192,132,252,0.4);
 }
 .prana-count-num{
-  font-size:38px;font-weight:900;color:var(--txt);
-  background:linear-gradient(135deg,var(--surf2),var(--surf));
-  border:1.5px solid var(--acc);border-radius:18px;
-  padding:6px 28px;box-shadow:0 0 20px rgba(93,224,168,.25);
+  font-size:42px;font-weight:900;color:var(--txt);
+  background:linear-gradient(135deg,rgba(30,27,75,0.9),rgba(15,23,42,0.95));
+  border:1.8px solid #A855F7;border-radius:20px;
+  padding:8px 32px;box-shadow:0 0 25px rgba(168,85,247,.4);
   font-variant-numeric:tabular-nums;margin-top:4px;
 }
 .prana-count-badge{
   display:inline-flex;align-items:center;gap:6px;
-  background:var(--acc-dim);border:1px solid var(--acc);
-  color:var(--acc-lt);font-size:12px;font-weight:700;
-  border-radius:20px;padding:4px 14px;margin-top:6px;
+  background:rgba(168,85,247,0.2);border:1px solid #A855F7;
+  color:#E9D5FF;font-size:12.5px;font-weight:800;
+  border-radius:20px;padding:5px 16px;margin-top:6px;
   font-variant-numeric:tabular-nums;
 }
 /* controls */
-.prana-ctrl{display:flex;gap:8px;width:100%;max-width:420px}
+.prana-ctrl{display:flex;gap:10px;width:100%;max-width:420px}
 .prana-btn{
-  flex:1;height:50px;border-radius:14px;
-  font-size:14px;font-weight:700;border:none;cursor:pointer;
-  font-family:inherit;transition:transform .1s;
+  flex:1;height:52px;border-radius:15px;
+  font-size:14.5px;font-weight:800;border:none;cursor:pointer;
+  font-family:inherit;transition:all .2s ease;
 }
-.prana-btn:active{transform:scale(.95)}
-.prana-btn.pause-btn{background:var(--surf);border:1.5px solid var(--acc);color:var(--acc-lt)}
+.prana-btn:active{transform:scale(.96)}
+.prana-btn.pause-btn{background:rgba(30,27,75,0.9);border:1.8px solid #A855F7;color:#E9D5FF;box-shadow:0 0 12px rgba(168,85,247,0.3)}
 .prana-btn.skip-btn{
-  flex:0 0 90px;background:var(--surf2);
-  border:1px solid var(--bdr);color:var(--muted);font-size:12px;
+  flex:0 0 95px;background:var(--surf2);
+  border:1px solid var(--bdr);color:var(--txt2);font-size:12.5px;
 }
 /* manual start button */
 .prana-manual-btn{
-  width:100%;padding:11px;border-radius:13px;
-  background:linear-gradient(135deg,#0F2A1A,#1A3A25);
-  border:1.5px solid var(--acc);color:var(--acc-lt);
-  font-size:13px;font-weight:700;cursor:pointer;
+  width:100%;padding:12px;border-radius:14px;
+  background:linear-gradient(135deg,rgba(168,85,247,0.25),rgba(139,92,246,0.15));
+  border:1.5px solid #A855F7;color:#E9D5FF;
+  font-size:13.5px;font-weight:800;cursor:pointer;
   display:flex;align-items:center;justify-content:center;gap:6px;
-  font-family:inherit;
+  font-family:inherit;box-shadow:0 0 15px rgba(168,85,247,0.25);
 }
 /* ═══ end pranayama ═══ */
 
 /* ── settings drawer ── */
 .dr{display:none;position:fixed;inset:0;z-index:90;align-items:flex-end}
 .dr.show{display:flex}
-.dr-bg{position:absolute;inset:0;background:rgba(0,0,0,.6)}
-.dr-pn{position:relative;background:var(--surf);border-radius:20px 20px 0 0;
-  width:100%;max-width:420px;margin:0 auto;padding:1.3rem 1.1rem;
-  display:flex;flex-direction:column;gap:.8rem;max-height:88vh;overflow-y:auto}
-.dr-pn h3{font-size:15px;font-weight:700}
-.srow{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.srow label{font-size:12.5px;color:var(--txt2);flex:1}
-.srow input[type=number]{width:62px;padding:6px 8px;border-radius:8px;
+.dr-bg{position:absolute;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px)}
+.dr-pn{position:relative;background:rgba(15,22,38,0.98);border-radius:24px 24px 0 0;
+  border-top:1px solid var(--bdr);backdrop-filter:blur(20px);
+  width:100%;max-width:420px;margin:0 auto;padding:1.4rem 1.2rem;
+  display:flex;flex-direction:column;gap:.9rem;max-height:88vh;overflow-y:auto;
+  box-shadow:0 -10px 40px rgba(0,0,0,0.6)}
+.dr-pn h3{font-size:16px;font-weight:800;color:var(--txt)}
+.srow{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.srow label{font-size:13px;color:var(--txt2);flex:1;font-weight:600}
+.srow input[type=number]{width:66px;padding:7px 9px;border-radius:10px;
   background:var(--surf2);border:1px solid var(--bdr);color:var(--txt);
-  font-size:14px;text-align:center}
-.srow input[type=text]{flex:1;padding:7px 10px;border-radius:8px;
-  background:var(--surf2);border:1px solid var(--bdr);color:var(--txt);font-size:13px}
-.tog{width:44px;height:26px;border-radius:13px;background:var(--bdr);
+  font-size:14px;text-align:center;font-weight:700}
+.srow input[type=text]{flex:1;padding:8px 11px;border-radius:10px;
+  background:var(--surf2);border:1px solid var(--bdr);color:var(--txt);font-size:13px.5;font-weight:600}
+.tog{width:46px;height:28px;border-radius:14px;background:var(--bdr);
   position:relative;cursor:pointer;border:none;transition:background .2s;flex-shrink:0}
-.tog.on{background:var(--acc)}
-.tog::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;
-  border-radius:50%;background:#fff;transition:transform .2s}
+.tog.on{background:linear-gradient(135deg,#F59E0B,#D97706);box-shadow:0 0 10px rgba(245,158,11,0.4)}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;
+  border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 2px 6px rgba(0,0,0,0.3)}
 .tog.on::after{transform:translateX(18px)}
-.dr-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer}
-.divider{border-top:1px solid var(--bdr);padding-top:.6rem}
-.voice-info{font-size:11px;color:var(--acc-lt);background:var(--surf2);
-  border-radius:8px;padding:7px 10px;line-height:1.5}
+.dr-close{background:none;border:none;color:var(--txt2);font-size:24px;cursor:pointer}
+.divider{border-top:1px solid var(--bdr);padding-top:.7rem}
+.voice-info{font-size:11.5px;color:var(--acc-lt);background:var(--surf2);
+  border-radius:10px;padding:8px 11px;line-height:1.5;font-weight:600}
 
 footer{text-align:center}
-footer p{font-size:9.5px;color:var(--muted)}
+footer p{font-size:10px;color:var(--txt2);font-weight:600}
 /* update ready banner */
 .upd-banner{display:none;background:var(--acc-dim);border:1px solid var(--acc);
-  border-radius:10px;padding:8px 12px;text-align:center;font-size:12px;
-  color:var(--acc-lt);cursor:pointer;margin-top:4px;font-weight:600}
+  border-radius:11px;padding:9px 13px;text-align:center;font-size:12.5px;
+  color:var(--acc-lt);cursor:pointer;margin-top:4px;font-weight:700}
 .upd-banner.show{display:block}
 
 /* ── DND banner ── */
 .dnd-banner{
   display:none;position:fixed;bottom:0;left:0;right:0;z-index:80;
-  background:linear-gradient(135deg,#1a2e20,#0f1e14);
-  border-top:1.5px solid var(--acc-dim);
-  padding:.7rem 1rem;align-items:center;gap:.75rem;
-  max-width:420px;margin:0 auto;
+  background:linear-gradient(135deg,rgba(26,46,34,0.95),rgba(12,22,17,0.98));
+  border-top:1.5px solid var(--acc-dim);backdrop-filter:blur(16px);
+  padding:.8rem 1.1rem;align-items:center;gap:.75rem;
+  max-width:420px;margin:0 auto;box-shadow:0 -4px 20px rgba(0,0,0,0.5);
 }
 .dnd-banner.show{display:flex}
-.dnd-icon{font-size:22px;flex-shrink:0}
+.dnd-icon{font-size:24px;flex-shrink:0}
 .dnd-text{flex:1}
-.dnd-text strong{font-size:12px;color:var(--acc-lt);display:block;margin-bottom:1px}
-.dnd-text span{font-size:10.5px;color:var(--txt2);line-height:1.4}
-.dnd-steps{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.5}
-.dnd-dismiss{background:none;border:1px solid var(--muted);color:var(--muted);
-  font-size:11px;padding:4px 10px;border-radius:8px;cursor:pointer;flex-shrink:0;
-  white-space:nowrap}
+.dnd-text strong{font-size:12.5px;color:var(--acc-lt);display:block;margin-bottom:1px;font-weight:800}
+.dnd-text span{font-size:11px;color:var(--txt2);line-height:1.4;font-weight:500}
+.dnd-steps{font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.5}
+.dnd-dismiss{background:none;border:1px solid var(--muted);color:var(--txt2);
+  font-size:11.5px;padding:5px 11px;border-radius:9px;cursor:pointer;flex-shrink:0;
+  white-space:nowrap;font-weight:700}
 .dnd-dismiss:active{opacity:.7}
 
 /* ── Grace countdown between rounds ── */
 .grace-wrap{
-  display:none;flex-direction:column;align-items:center;gap:5px;
-  padding:.5rem .75rem;background:var(--surf2);
-  border-radius:12px;border:1px solid var(--warn);
+  display:none;flex-direction:column;align-items:center;gap:6px;
+  padding:.6rem .85rem;background:var(--surf-card);
+  border-radius:14px;border:1px solid var(--warn);backdrop-filter:blur(12px);
 }
-.grace-label{font-size:11px;color:var(--warn);font-weight:600;letter-spacing:.04em}
-.grace-row{display:flex;align-items:center;gap:8px;width:100%}
-.grace-track{flex:1;height:6px;background:var(--bdr);border-radius:3px;overflow:hidden}
-.grace-fill{height:6px;background:var(--warn);border-radius:3px;width:0%;transition:width .1s linear}
-.grace-num{font-size:18px;font-weight:700;color:var(--warn);min-width:24px;text-align:center}
+.grace-label{font-size:11.5px;color:var(--warn);font-weight:700;letter-spacing:.04em}
+.grace-row{display:flex;align-items:center;gap:10px;width:100%}
+.grace-track{flex:1;height:7px;background:var(--bdr);border-radius:4px;overflow:hidden}
+.grace-fill{height:7px;background:linear-gradient(90deg,#F97316 0%,#FBBF24 100%);border-radius:4px;width:0%;transition:width .1s linear;box-shadow:0 0 10px rgba(249,115,22,0.6)}
+.grace-num{font-size:19px;font-weight:800;color:var(--warn);min-width:26px;text-align:center;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
 <div class="app">
 
-  <!-- Header: program name + gear -->
+  <!-- Header: program logo + name + gear -->
   <header>
-    <div>
-      <div class="prog-name" id="prog-name">SURYASARTHI 108</div>
-      <div id="day-label">Day 1 · Goal</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <img id="header-smiling-sun-icon" src="icon-192.png" alt="Suryasarthi Smiling Sun"
+           style="width:38px;height:38px;border-radius:50%;border:1.8px solid #FBBF24;box-shadow:0 0 12px rgba(251,191,36,0.6);animation:sunPulseGlow 3s infinite ease-in-out;object-fit:cover">
+      <div>
+        <div class="prog-name" id="prog-name">SURYASARTHI 108</div>
+        <div id="day-label">Day 1 · Goal</div>
+      </div>
     </div>
     <div style="display:flex;align-items:center;gap:6px">
       <div id="trial-header-badge" onclick="showPaywallOverlay()"
@@ -384,10 +462,10 @@ footer p{font-size:9.5px;color:var(--muted)}
 
   <!-- Stats: Today / Goal / Streak / Total -->
   <div class="stats">
-    <div class="stat"><div class="lbl">Today</div><div class="val" id="s-today">0</div></div>
+    <div class="stat stat-today"><div class="lbl">Today</div><div class="val" id="s-today">0</div></div>
     <div class="stat hi"><div class="lbl">Goal</div><div class="val" id="s-goal">-</div></div>
-    <div class="stat"><div class="lbl">Streak</div><div class="val" id="s-streak">0</div></div>
-    <div class="stat"><div class="lbl">Total</div><div class="val" id="s-total">0</div></div>
+    <div class="stat stat-streak"><div class="lbl">Streak</div><div class="val" id="s-streak">0</div></div>
+    <div class="stat stat-total"><div class="lbl">Total</div><div class="val" id="s-total">0</div></div>
   </div>
 
   <!-- Time cards: today session time + cumulative total -->
@@ -437,8 +515,9 @@ footer p{font-size:9.5px;color:var(--muted)}
   </div>
 
   <!-- Quick Ayurvedic Diet & Hydration Card -->
-  <div id="card-view-diet-plan" onclick="showDietModal()" style="display:block;background:linear-gradient(135deg,rgba(29,184,127,0.12),rgba(255,215,0,0.12));border:1.2px solid var(--acc-dim);border-radius:14px;padding:10px 12px;margin-top:6px;cursor:pointer">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+  <div id="card-view-diet-plan" onclick="handleDietPlanClick(event)" style="display:block;background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(56,189,248,0.12));border:1.2px solid var(--bdr);border-radius:14px;padding:10px 12px;margin-top:6px;cursor:pointer;backdrop-filter:blur(12px)">
+    <!-- Full Diet Info Header (Visible ONLY when goal complete) -->
+    <div id="diet-card-info-header" style="display:none;align-items:center;justify-content:space-between;margin-bottom:6px">
       <div style="display:flex;align-items:center;gap:8px">
         <span style="font-size:18px">🥗</span>
         <div>
@@ -446,29 +525,39 @@ footer p{font-size:9.5px;color:var(--muted)}
           <div style="font-size:10px;font-weight:700;color:var(--acc-lt)" id="card-water-quick-status">💧 0 / 3 Bottles logged (2.8 L Goal)</div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <button id="btn-quick-log-water" onclick="event.stopPropagation(); quickLogWaterAndSpeak()" style="background:var(--acc);color:#06231A;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:900;cursor:pointer;display:flex;align-items:center;gap:4px;box-shadow:0 2px 8px rgba(29,184,127,0.3)">
-          💧 +1 Drink Water
-        </button>
-        <button id="btn-view-diet-plan" onclick="event.stopPropagation(); showDietModal()" style="background:var(--acc-dim);border:1px solid var(--acc);color:var(--acc-lt);font-size:10px;font-weight:800;padding:6px 10px;border-radius:8px;cursor:pointer">
-          View Plan
-        </button>
-      </div>
+      <button id="btn-view-diet-plan" onclick="event.stopPropagation(); showDietModal()" style="background:rgba(16,185,129,0.18);border:1px solid #10B981;color:#34D399;font-size:10px;font-weight:800;padding:6px 10px;border-radius:8px;cursor:pointer">
+        View Plan
+      </button>
     </div>
-    <!-- Quick Live Water Progress Bar -->
-    <div style="background:var(--surf2);height:6px;border-radius:3px;overflow:hidden">
-      <div id="card-water-progress-bar" style="background:linear-gradient(90deg,var(--acc-lt),#5DE0A8);height:100%;width:0%;transition:width .3s ease"></div>
+
+    <!-- Standalone Water Button Row -->
+    <div id="diet-card-water-btn-row" style="display:flex;justify-content:center;width:100%">
+      <button id="btn-quick-log-water" onclick="event.stopPropagation(); quickLogWaterAndSpeak()" style="background:linear-gradient(135deg,#38BDF8,#0284C7);color:#031527;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 2px 10px rgba(56,189,248,0.4);width:100%">
+        💧 +1 Drink Water
+      </button>
+    </div>
+
+    <!-- Quick Live Water Progress Bar (Visible ONLY when goal complete) -->
+    <div id="diet-card-pbar-wrap" style="display:none;background:var(--surf2);height:7px;border-radius:4px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,0.4);margin-top:6px">
+      <div id="card-water-progress-bar" style="background:linear-gradient(90deg,#06B6D4 0%,#38BDF8 50%,#60A5FA 100%);height:100%;width:0%;transition:width .35s ease;box-shadow:0 0 10px rgba(6,182,212,0.6)"></div>
     </div>
   </div>
 
   <!-- Ring -->
   <div class="ring-wrap">
     <svg width="220" height="220" viewBox="0 0 220 220">
+      <defs>
+        <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#38BDF8" />
+          <stop offset="50%" stop-color="#FBBF24" />
+          <stop offset="100%" stop-color="#F97316" />
+        </linearGradient>
+      </defs>
       <circle cx="110" cy="110" r="98" fill="none" stroke="var(--bdr)" stroke-width="10"/>
-      <circle id="ring" cx="110" cy="110" r="98" fill="none" stroke="var(--acc)"
+      <circle id="ring" cx="110" cy="110" r="98" fill="none" stroke="url(#ringGrad)"
         stroke-width="10" stroke-linecap="round"
         stroke-dasharray="615.75" stroke-dashoffset="615.75"
-        style="transition:stroke-dashoffset .3s ease"/>
+        style="transition:stroke-dashoffset .3s ease;filter:drop-shadow(0 0 10px rgba(245,158,11,0.5))"/>
     </svg>
     <div class="rc">
       <div class="mantra-roman"  id="r-mantra">☀️</div>
@@ -787,7 +876,7 @@ footer p{font-size:9.5px;color:var(--muted)}
       <input type="number" id="cfg-inc" min="1" max="20" value="4">
     </div>
     <div class="srow">
-      <label>🎯 Today's goal <span style="font-size:10px;color:var(--acc-lt)">(auto +4 tomorrow at 12 AM)</span></label>
+      <label>🎯 Today's goal <span style="font-size:10px;color:var(--acc-lt)">(auto +4 tonight at 12 AM Midnight)</span></label>
       <input type="number" id="cfg-goal" min="1" max="108" value="32">
     </div>
     <div class="srow">
@@ -935,6 +1024,24 @@ footer p{font-size:9.5px;color:var(--muted)}
       Tap "Set Android Alarm" — it opens your Clock app with the alarm pre-filled at the time you chose above. Approve it once and it fires every day even if app is closed.
     </div>
 
+    <!-- ⚡ Battery Optimization & Lock-Screen Notifications Section -->
+    <div class="srow divider" style="flex-direction:column;align-items:stretch;gap:8px;padding-top:10px;padding-bottom:10px;background:linear-gradient(135deg,rgba(245,158,11,0.12),rgba(56,189,248,0.1));border-radius:12px;padding:12px;border:1px solid rgba(245,158,11,0.3)">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:12px;font-weight:800;color:var(--acc-lt);display:flex;align-items:center;gap:6px">
+          ⚡ Battery Optimization &amp; Lock-Screen Reminders
+        </div>
+        <button onclick="showBatteryOptModal()" style="background:linear-gradient(135deg,#38BDF8,#0284C7);color:#031527;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:900;cursor:pointer;box-shadow:0 2px 8px rgba(56,189,248,0.3)">
+          Turn Off Guide
+        </button>
+      </div>
+      <div style="font-size:10px;color:var(--txt2);line-height:1.4">
+        Android OS aggressive battery saver can delay background water notifications when the screen is locked. Turn off battery optimization for Chrome/Browser to ensure 100% lock-screen water &amp; alarm reminders!
+      </div>
+      <button onclick="testLockscreenNotification()" style="background:rgba(16,185,129,0.18);border:1px solid #10B981;color:#34D399;border-radius:8px;padding:7px 12px;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+        🔔 Test Lock-Screen Water Notification
+      </button>
+    </div>
+
     <div class="srow divider">
       <label>📊 Chart history days (7 / 14 / 21)</label>
       <select id="cfg-chart-days" style="background:var(--surf2);border:1px solid var(--bdr);color:var(--txt);border-radius:8px;padding:6px 8px;font-size:13px">
@@ -986,6 +1093,16 @@ footer p{font-size:9.5px;color:var(--muted)}
                color:var(--acc-lt);border-radius:9px;padding:7px 12px;
                font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">
         Scan &amp; Recover
+      </button>
+    </div>
+
+    <div class="srow divider">
+      <label style="color:#38BDF8">🧹 Clear old cache &amp; force update</label>
+      <button onclick="clearAppCacheAndReload()"
+        style="background:rgba(56,189,248,0.18);border:1px solid #38BDF8;
+               color:#38BDF8;border-radius:9px;padding:7px 12px;
+               font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">
+        🧹 Clear Cache
       </button>
     </div>
 
@@ -1086,23 +1203,58 @@ footer p{font-size:9.5px;color:var(--muted)}
         ✕ Dismiss
       </button>
     </div>
-<!-- Daytime Best-Friend Companion Overlay Modal -->
-<div class="ov" id="companion-modal" style="display:none">
-  <div class="ov-box" style="max-width:400px;text-align:center;position:relative;background:linear-gradient(145deg, #182B21, #0B1210);border:1.5px solid var(--acc-lt);border-radius:20px;padding:22px 18px;box-shadow:0 12px 36px rgba(0,0,0,0.75)">
-    <div style="font-size:36px;margin-bottom:6px" id="companion-avatar">☀️</div>
-    <div id="companion-badge" style="font-size:11px;font-weight:800;color:var(--acc-lt);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">
-      💛 SURYA SARATHI · BEST FRIEND CHECK-IN
-    </div>
-    <div id="companion-title" style="font-size:16px;font-weight:900;color:var(--txt);margin-bottom:12px;line-height:1.35">
-      The sun has checked in. Are you coming?
-    </div>
+<!-- Daytime Best-Friend Companion WhatsApp Popup Modal -->
+<div class="ov" id="companion-modal" style="display:none;z-index:10000;background:rgba(7,11,20,.88);backdrop-filter:blur(12px)">
+  <div class="ov-box" style="max-width:380px;width:100%;text-align:left;position:relative;background:linear-gradient(145deg, #111B21, #0C1317);border:1.5px solid #25D366;border-radius:20px;padding:16px;box-shadow:0 16px 40px rgba(0,0,0,0.85);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
     
-    <!-- Message Container -->
-    <div style="background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:14px 12px;margin-bottom:14px">
-      <div id="companion-body" style="font-size:13.5px;color:var(--txt);line-height:1.6;font-weight:600">
+    <!-- WhatsApp Header Bar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#075E54,#128C7E);margin:-16px -16px 14px -16px;padding:12px 16px;border-radius:18px 18px 0 0;box-shadow:0 2px 8px rgba(0,0,0,0.3)">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="font-size:16px">💬</div>
+        <div style="font-size:12px;font-weight:800;color:#E9EDEF;letter-spacing:.02em">WhatsApp Message · Best Friend</div>
+      </div>
+      <button onclick="closeCompanionModal()" style="background:none;border:none;color:#AEBAC1;font-size:20px;cursor:pointer;padding:0 4px">✕</button>
+    </div>
+
+    <!-- WhatsApp Contact Header -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <div style="position:relative">
+        <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#25D366,#128C7E);display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 2px 8px rgba(37,211,102,0.4)" id="companion-avatar">☀️</div>
+        <div style="position:absolute;bottom:0;right:0;width:12px;height:12px;background:#25D366;border:2px solid #111B21;border-radius:50%"></div>
+      </div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:4px">
+          <div style="font-size:14px;font-weight:800;color:#E9EDEF" id="companion-title">Suryasarthi Best Friend</div>
+          <span style="font-size:12px;color:#25D366">✓</span>
+        </div>
+        <div style="font-size:10.5px;color:#25D366;font-weight:700" id="companion-badge">Online · Best Friend Check-In</div>
+      </div>
+      <div style="font-size:10px;color:#8696A0;font-weight:600" id="whatsapp-time-label">1:30 PM</div>
+    </div>
+
+    <!-- WhatsApp Chat Speech Bubble Card -->
+    <div style="background:#202C33;border-left:4px solid #005C4B;border-radius:0 14px 14px 14px;padding:12px 14px;margin-bottom:14px;position:relative;box-shadow:0 2px 8px rgba(0,0,0,0.3)">
+      <div id="companion-body" style="font-size:13px;color:#E9EDEF;line-height:1.55;font-weight:500;white-space:pre-line">
         We saved your mat. It misses your footsteps!
       </div>
+      <div style="display:flex;align-items:center;justify-content:flex-end;gap:3px;margin-top:6px;font-size:9.5px;color:#8696A0">
+        <span id="whatsapp-bubble-time">1:30 PM</span>
+        <span style="color:#53BDEB;font-weight:900">✓✓</span>
+      </div>
     </div>
+
+    <!-- WhatsApp Quick Action Buttons -->
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button onclick="speakCompanionNotification()" style="background:#202C33;border:1px solid #005C4B;color:#25D366;border-radius:12px;padding:10px;font-size:12.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+        🎤 Listen Voice Message
+      </button>
+      <button onclick="startPracticeFromCompanion()" style="background:linear-gradient(135deg,#25D366,#128C7E);color:#111B21;border:none;border-radius:12px;padding:11px;font-size:13.5px;font-weight:900;cursor:pointer;box-shadow:0 3px 12px rgba(37,211,102,0.35)">
+        🧘 Open Practice / Reply
+      </button>
+    </div>
+
+  </div>
+</div>
 
     <!-- Action Buttons -->
     <div style="display:flex;flex-direction:column;gap:8px">
@@ -1119,17 +1271,30 @@ footer p{font-size:9.5px;color:var(--muted)}
   </div>
 <!-- Ayurvedic Diet & Hydration Modal -->
 <div class="ov" id="diet-modal" style="display:none;z-index:10000">
-  <div class="ov-box" style="max-width:420px;text-align:left;position:relative;background:linear-gradient(145deg, #182B21, #0B1210);border:1.5px solid var(--acc-lt);border-radius:22px;padding:20px;box-shadow:0 14px 40px rgba(0,0,0,0.8);max-height:85vh;overflow-y:auto">
+  <div class="ov-box" style="max-width:440px;text-align:left;position:relative;background:linear-gradient(145deg, rgba(23,35,58,0.98), rgba(12,19,33,0.99));border:1.8px solid var(--acc);border-radius:22px;padding:18px;box-shadow:0 16px 45px rgba(0,0,0,0.85);max-height:88vh;overflow-y:auto;backdrop-filter:blur(20px)">
     <!-- Header -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;border-bottom:1px solid var(--bdr);padding-bottom:10px">
-      <div style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:26px" id="diet-modal-icon">🥗</span>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;border-bottom:1.5px solid var(--bdr);padding-bottom:10px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:28px" id="diet-modal-icon">🥗</span>
         <div>
-          <div style="font-size:15px;font-weight:900;color:var(--txt)">Ayurvedic Diet &amp; Hydration</div>
-          <div style="font-size:11px;font-weight:700;color:var(--acc-lt)" id="diet-user-greeting">Namaste Vaibhav!</div>
+          <div style="font-size:16px;font-weight:900;color:var(--txt);letter-spacing:.02em">Ayurvedic Diet &amp; Hydration</div>
+          <div style="font-size:11px;font-weight:800;color:var(--acc-lt)" id="diet-user-greeting">Namaste Vaibhav! 🙏</div>
         </div>
       </div>
-      <button onclick="closeDietModal()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px">✕</button>
+      <button onclick="closeDietModal()" style="background:none;border:none;color:var(--txt2);font-size:22px;cursor:pointer;padding:4px">✕</button>
+    </div>
+
+    <!-- Sacred Vedic Shloka Banner -->
+    <div style="background:linear-gradient(135deg,rgba(245,158,11,0.18),rgba(249,115,22,0.12));border:1.5px solid var(--acc);border-radius:16px;padding:12px;margin-bottom:12px;text-align:center;box-shadow:0 4px 16px rgba(245,158,11,0.2)">
+      <div style="font-family:'Noto Sans Devanagari','Outfit',sans-serif;font-size:15px;font-weight:900;color:var(--acc-lt);line-height:1.45;letter-spacing:.03em;text-shadow:0 0 10px rgba(251,191,36,0.4)">
+        अन्नं ब्रह्म रसो विष्णुर्भोक्ता देवो महेश्वरः ।<br>शरीरमाद्यं खलु धर्मसाधनम् ॥
+      </div>
+      <div style="font-size:10px;color:var(--txt2);margin-top:6px;font-style:italic;line-height:1.4">
+        "Food is Brahma (creator), its essence is Vishnu (sustainer), and the enjoyer is Shiva. Maintain the physical body as the sacred vessel of Dharma."
+      </div>
+      <div style="margin-top:8px;padding-top:6px;border-top:1px dashed rgba(245,158,11,0.3);font-size:11px;font-weight:800;color:var(--acc-lt);display:flex;align-items:center;justify-content:center;gap:6px" id="diet-prep-date-header">
+        📅 Date: Loading... · Advance Meal &amp; Hydration Prep Timetable
+      </div>
     </div>
 
     <!-- Personalized Weight Loss & Calorie Banner -->
@@ -1303,6 +1468,70 @@ footer p{font-size:9.5px;color:var(--muted)}
     <div id="guide-modal-content" style="max-height:70vh;overflow-y:auto;font-size:11px;color:var(--txt);line-height:1.5;display:grid;gap:12px;padding-right:4px;">
       <!-- Populated dynamically by app.js -->
     </div>
+  </div>
+</div>
+
+<!-- ⚡ Battery Optimization Guidance Modal -->
+<div id="battery-opt-modal" style="display:none;position:fixed;inset:0;background:rgba(7,11,20,.96);backdrop-filter:blur(16px);z-index:10000;flex-direction:column;align-items:center;justify-content:center;padding:1.2rem;overflow-y:auto">
+  <div style="background:linear-gradient(145deg,rgba(23,35,58,0.98),rgba(12,19,33,0.99));border:1.5px solid var(--acc);border-radius:20px;padding:1.2rem;width:100%;max-width:420px;display:flex;flex-direction:column;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.6)">
+    
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:15px;font-weight:900;color:var(--acc-lt);display:flex;align-items:center;gap:6px">
+        ⚡ Turn Off Battery Optimization
+      </div>
+      <button onclick="closeBatteryOptModal()" style="background:none;border:none;color:var(--txt2);font-size:22px;cursor:pointer;padding:0 4px">✕</button>
+    </div>
+
+    <div style="font-size:11.5px;color:var(--txt2);line-height:1.5">
+      To receive <strong>Water &amp; Diet Reminders on your lock screen even when the app is closed</strong>, Android requires turning off battery optimization for your browser:
+    </div>
+
+    <!-- Step 1: Chrome / Android PWA -->
+    <div style="background:rgba(28,42,69,0.7);border-radius:12px;padding:10px;border:1px solid rgba(96,165,250,0.2)">
+      <div style="font-size:12px;font-weight:800;color:#60A5FA;margin-bottom:4px">📱 Chrome / PWA Settings:</div>
+      <div style="font-size:10.5px;color:var(--txt2);line-height:1.5">
+        1. Open Android <strong>Settings</strong> → <strong>Apps</strong> → <strong>Chrome</strong> (or <strong>Suryasarthi 108</strong>).<br>
+        2. Tap <strong>Battery</strong> → Select <strong>"Unrestricted"</strong>.<br>
+        3. Tap <strong>Notifications</strong> → Enable <strong>"Allow sound and vibration"</strong> &amp; <strong>"Lock screen: Show content"</strong>.
+      </div>
+    </div>
+
+    <!-- Step 2: Samsung Devices -->
+    <div style="background:rgba(28,42,69,0.7);border-radius:12px;padding:10px;border:1px solid rgba(96,165,250,0.2)">
+      <div style="font-size:12px;font-weight:800;color:#38BDF8;margin-bottom:4px">📲 Samsung (One UI):</div>
+      <div style="font-size:10.5px;color:var(--txt2);line-height:1.5">
+        1. <strong>Settings</strong> → <strong>Apps</strong> → <strong>Chrome / App</strong> → <strong>Battery</strong> → Choose <strong>"Unrestricted"</strong>.<br>
+        2. <strong>Settings</strong> → <strong>Battery</strong> → <strong>Background usage limits</strong> → Add Chrome to <strong>"Never sleeping apps"</strong>.
+      </div>
+    </div>
+
+    <!-- Step 3: Xiaomi / Redmi / Poco -->
+    <div style="background:rgba(28,42,69,0.7);border-radius:12px;padding:10px;border:1px solid rgba(96,165,250,0.2)">
+      <div style="font-size:12px;font-weight:800;color:#FBBF24;margin-bottom:4px">📱 Xiaomi / Redmi (MIUI / HyperOS):</div>
+      <div style="font-size:10.5px;color:var(--txt2);line-height:1.5">
+        1. <strong>Settings</strong> → <strong>Apps</strong> → <strong>Manage Apps</strong> → <strong>Chrome / App</strong>.<br>
+        2. Turn ON <strong>"Autostart"</strong> → Tap <strong>Battery Saver</strong> → Choose <strong>"No Restrictions"</strong>.
+      </div>
+    </div>
+
+    <!-- Step 4: OnePlus / Oppo / RealMe -->
+    <div style="background:rgba(28,42,69,0.7);border-radius:12px;padding:10px;border:1px solid rgba(96,165,250,0.2)">
+      <div style="font-size:12px;font-weight:800;color:#F87171;margin-bottom:4px">📲 OnePlus / Oppo / RealMe:</div>
+      <div style="font-size:10.5px;color:var(--txt2);line-height:1.5">
+        1. <strong>Settings</strong> → <strong>Battery</strong> → <strong>App Battery Management</strong> → Select <strong>Chrome / App</strong>.<br>
+        2. Enable <strong>"Allow background activity"</strong> &amp; <strong>"Allow auto-launch"</strong>.
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button onclick="testLockscreenNotification()" style="flex:1;background:linear-gradient(135deg,#38BDF8,#0284C7);color:#031527;border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:900;cursor:pointer;box-shadow:0 2px 8px rgba(56,189,248,0.4)">
+        🔔 Test Lock-Screen Notification
+      </button>
+      <button onclick="closeBatteryOptModal()" style="background:var(--surf2);border:1px solid var(--bdr);color:var(--txt2);border-radius:10px;padding:10px 16px;font-size:12px;font-weight:700;cursor:pointer">
+        Done
+      </button>
+    </div>
+
   </div>
 </div>
 

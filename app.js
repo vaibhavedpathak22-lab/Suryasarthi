@@ -692,10 +692,10 @@ function handleMainBtn() {
       vib(30);
       const lang = cfg.pranaLang || "en";
       const msg = lang === "hi"
-        ? "🎯 आज का सूर्य नमस्कार लक्ष्य पूरा हो गया है! कल का लक्ष्य रात 12:00 बजे (12 AM) अनलॉक होगा। 🔒"
+        ? "🎯 आज का सूर्य नमस्कार लक्ष्य पूरा हो गया है! नया लक्ष्य आज रात 12:00 बजे (12 AM) अनलॉक होगा (सुबह 5 बजे के अभ्यास के लिए तैयार)। 🔒"
         : lang === "mr"
-        ? "🎯 आजचे सूर्य नमस्कार ध्येय पूर्ण झाले आहे! उद्याचे ध्येय रात्री 12:00 वाजता अनलॉक होईल. 🔒"
-        : "🎯 Today's Surya Namaskara target complete! Tomorrow's goal unlocks at 12:00 AM Midnight. 🔒";
+        ? "🎯 आजचे सूर्य नमस्कार ध्येय पूर्ण झाले आहे! नवीन ध्येय आज रात्री 12:00 वाजता अनलॉक होईल (सकाळी 5 वाजताच्या अभ्यासासाठी तयार). 🔒"
+        : "🎯 Today's Surya Namaskara target complete! Unlocks tonight at 12:00 AM Midnight (Ready for 5:00 AM practice). 🔒";
       alert(msg);
       return;
     }
@@ -1080,20 +1080,20 @@ function render() {
     if(isGoalLocked) {
       document.getElementById("r-mantra").textContent     = "🎉 Goal complete! 🔒";
       document.getElementById("r-devanagari").textContent = "नमस्ते 🙏";
-      document.getElementById("r-meaning").textContent    = "Tomorrow's goal: " + tomorrowG + " rounds (+4) 🔒";
+      document.getElementById("r-meaning").textContent    = "Next goal: " + tomorrowG + " rounds (+4) 🔒 (Unlocks tonight at 12 AM)";
       document.getElementById("r-pose").textContent       = "Target Achieved!";
       document.getElementById("r-breath").textContent     = "Rest or Pranayama";
       document.getElementById("r-breath").className       = "pose-breath inhale";
-      document.getElementById("r-pnum").textContent       = "Today: " + done + " / " + goal + " · Tomorrow: " + tomorrowG + " 🔒";
+      document.getElementById("r-pnum").textContent       = "Today: " + done + " / " + goal + " · Next: " + tomorrowG + " 🔒";
 
       if(mainLbl) mainLbl.textContent = "🔒 Goal Complete";
       if(mainBtn) {
-        mainBtn.style.background = "var(--surf2)";
-        mainBtn.style.border = "1.5px solid var(--bdr)";
-        mainBtn.style.color = "var(--muted)";
+        mainBtn.style.background = "linear-gradient(135deg, rgba(245,158,11,0.15), rgba(15,23,42,0.8))";
+        mainBtn.style.border = "1.5px solid #F59E0B";
+        mainBtn.style.color = "#FBBF24";
         mainBtn.style.cursor = "not-allowed";
-        mainBtn.style.opacity = "0.75";
-        mainBtn.style.boxShadow = "none";
+        mainBtn.style.opacity = "0.9";
+        mainBtn.style.boxShadow = "0 0 14px rgba(245,158,11,0.3)";
       }
     } else {
       document.getElementById("r-mantra").textContent     = "☀️";
@@ -1145,6 +1145,7 @@ function render() {
   for(let i=1; i<=showUpTo; i++){
     const dot=document.createElement("div");
     const isDone     = i <= done;
+    const isLastDone = isDone && i === done;
     const isActive   = i === done+1 && sess.active;
     const isNewToday = i > yesterBase && i <= goal;
     const isTomorrow = i > goal;
@@ -1152,14 +1153,17 @@ function render() {
     let cls = "dot";
     if(isDone && isNewToday)  cls += " done new-today";
     else if(isDone)           cls += " done";
-    else if(isActive)         cls += " active";
+
+    if(isLastDone)            cls += " last-done";
+
+    if(isActive)              cls += " active";
     else if(isTomorrow)       cls += " target locked";
     else if(isNewToday)       cls += " target";
 
     dot.className = cls;
     dot.textContent = i;
     if(isTomorrow) {
-      dot.title = "Tomorrow's goal: " + tomorrowG + " (locked until 12 AM)";
+      dot.title = "Next goal: " + tomorrowG + " (unlocks tonight at 12 AM Midnight)";
     }
     dotsEl.appendChild(dot);
   }
@@ -1211,10 +1215,15 @@ function _drawChart() {
   const DH   = 20;   // date label below bar
   const TOT  = LH + CH + DH;
 
-  // Colors — simple, same as before
-  const barCol  = p => p.isToday ? "#1DB87F" : (p.sets > 0 ? "#5DE0A8" : "#1E2E22");
-  const lblCol  = p => p.isToday ? "#5DE0A8" : (p.sets > 0 ? "#9DB8A8" : "#3A5040");
-  const dateCol = p => p.isToday ? "#5DE0A8" : "#5A7065";
+  // Colors — Multi-Gradient Functional Scheme for Chart Bars & Lines
+  const barStyle = p => p.isToday
+    ? "background:linear-gradient(180deg,#FBBF24 0%,#F59E0B 100%);box-shadow:0 0 12px rgba(251,191,36,0.6);"
+    : (p.sets > 0
+        ? "background:linear-gradient(180deg,#60A5FA 0%,#3B82F6 100%);box-shadow:0 0 8px rgba(96,165,250,0.4);"
+        : "background:rgba(59,130,246,0.15);border:1px dashed rgba(96,165,250,0.2);");
+
+  const lblCol  = p => p.isToday ? "#FBBF24" : (p.sets > 0 ? "#60A5FA" : "#93C5FD");
+  const dateCol = p => p.isToday ? "#FBBF24" : "#93C5FD";
 
   /* ── BAR ──────────────────────────────────────────────────── */
   if(mode === "bar") {
@@ -1247,7 +1256,7 @@ function _drawChart() {
         if(p.goal > 0) {
           const t2 = document.createElement("div");
           t2.style.cssText =
-            "font-size:7px;color:#3A5040;line-height:1;text-align:center";
+            "font-size:7px;color:#93C5FD;line-height:1;text-align:center";
           t2.textContent = "/"+p.goal;
           la.appendChild(t2);
         }
@@ -1261,7 +1270,7 @@ function _drawChart() {
       const bar = document.createElement("div");
       bar.style.cssText =
         "width:100%;height:"+barH+"px;flex-shrink:0;" +
-        "border-radius:3px 3px 2px 2px;background:"+barCol(p)+";margin-top:auto";
+        "border-radius:3px 3px 2px 2px;"+barStyle(p)+"margin-top:auto";
       col.appendChild(bar);
 
       /* date label ------------------------------------------ */
@@ -1270,7 +1279,7 @@ function _drawChart() {
       const skip = N > 14 ? 3 : (N > 7 ? 2 : 1);
       dl.style.cssText =
         "font-size:"+(N>14?"7":"8")+"px;text-align:center;margin-top:4px;" +
-        "height:"+(DH-4)+"px;line-height:"+(DH-4)+"px;color:"+dateCol(p);
+        "height:"+(DH-4)+"px;line-height:"+(DH-4)+"px;color:"+dateCol(p)+";font-weight:600";
       if(idx % skip === 0 || p.isToday)
         dl.textContent = dt.toLocaleDateString(undefined,{month:"numeric",day:"numeric"});
       col.appendChild(dl);
@@ -1298,10 +1307,10 @@ function _drawChart() {
     const gl = document.createElementNS("http://www.w3.org/2000/svg", "line");
     gl.setAttribute("x1", 0); gl.setAttribute("x2", SW);
     gl.setAttribute("y1", gy); gl.setAttribute("y2", gy);
-    gl.setAttribute("stroke", "#1E3028"); gl.setAttribute("stroke-width", "1");
+    gl.setAttribute("stroke", "rgba(96,165,250,0.2)"); gl.setAttribute("stroke-width", "1");
     const gv = document.createElementNS("http://www.w3.org/2000/svg", "text");
     gv.setAttribute("x", 2); gv.setAttribute("y", gy - 3);
-    gv.setAttribute("fill", "#3A5040"); gv.setAttribute("font-size", "7");
+    gv.setAttribute("fill", "#93C5FD"); gv.setAttribute("font-size", "7");
     gv.textContent = Math.round(maxVal * f);
     svg.appendChild(gv);
   });
@@ -1314,10 +1323,11 @@ function _drawChart() {
     const pl = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
     pl.setAttribute("points", lpts.join(" "));
     pl.setAttribute("fill", "none");
-    pl.setAttribute("stroke", "#1DB87F");
-    pl.setAttribute("stroke-width", "2");
+    pl.setAttribute("stroke", "#38BDF8");
+    pl.setAttribute("stroke-width", "2.5");
     pl.setAttribute("stroke-linejoin", "round");
     pl.setAttribute("stroke-linecap", "round");
+    pl.setAttribute("style", "filter:drop-shadow(0 0 6px rgba(56,189,248,0.7))");
     svg.appendChild(pl);
   }
 
@@ -1330,7 +1340,7 @@ function _drawChart() {
     const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     c.setAttribute("cx", cx); c.setAttribute("cy", cy);
     c.setAttribute("r",  p.isToday ? "5" : "3.5");
-    c.setAttribute("fill", p.isToday ? "#1DB87F" : (p.sets > 0 ? "#5DE0A8" : "#243328"));
+    c.setAttribute("fill", p.isToday ? "#FBBF24" : (p.sets > 0 ? "#60A5FA" : "rgba(96,165,250,0.2)"));
     svg.appendChild(c);
 
     // value label above dot
@@ -1338,7 +1348,7 @@ function _drawChart() {
       const vt = document.createElementNS("http://www.w3.org/2000/svg", "text");
       vt.setAttribute("x", cx); vt.setAttribute("y", cy - 8);
       vt.setAttribute("text-anchor", "middle");
-      vt.setAttribute("fill", p.isToday ? "#5DE0A8" : "#9DB8A8");
+      vt.setAttribute("fill", p.isToday ? "#FBBF24" : "#60A5FA");
       vt.setAttribute("font-size", "8");
       vt.setAttribute("font-weight", "700");
       vt.textContent = p.sets + (p.goal > 0 ? "/"+p.goal : "");
@@ -1352,7 +1362,7 @@ function _drawChart() {
       const dl = document.createElementNS("http://www.w3.org/2000/svg", "text");
       dl.setAttribute("x", cx); dl.setAttribute("y", LH + CH + DH - 2);
       dl.setAttribute("text-anchor", "middle");
-      dl.setAttribute("fill", p.isToday ? "#5DE0A8" : "#5A7065");
+      dl.setAttribute("fill", p.isToday ? "#FBBF24" : "#93C5FD");
       dl.setAttribute("font-size", "8");
       dl.textContent = dt.toLocaleDateString(undefined,{month:"numeric",day:"numeric"});
       svg.appendChild(dl);
@@ -1997,7 +2007,7 @@ function endPranayama() {
   clearPranaTimers();
   const elapsedMs = pranaElapsedTotalMs();
   pranaState.active = false;
-  releaseWakeLock();
+  // Note: releaseWakeLock() will be called when user closes the Pranayama view so screen stays on till end
 
   const today = todayKey();
   if(!data.history[today]) data.history[today] = { sets:0, timeMs:0, goal:0 };
@@ -2386,6 +2396,7 @@ function checkMidnightRollover() {
     saveAll();
     render();
     updateWaterTrackerUI(); // Reset water tracker & unlock +1 Drink Water button at 12 AM Midnight!
+    updateDietPlanButtonLockUI(); // Unlock Pranayama & Diet Plan button locks at 12 AM Midnight!
     updateClockDisplay();
     console.log("12 AM Midnight rollover complete | Date:", today, "| Today Goal:", newG);
   }
@@ -2843,6 +2854,30 @@ window.snoozeAlarm = snoozeAlarm;
    4. visibilitychange — when user opens app near alarm time, speak greeting
 ═══════════════════════════════════════════════════════════════ */
 
+async function clearAppCacheAndReload() {
+  if (confirm("Clear old app cache & reload the updated version? (Your workout history will be preserved)")) {
+    try {
+      if ("serviceWorker" in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let reg of registrations) {
+          await reg.unregister();
+        }
+      }
+      if ("caches" in window) {
+        const keys = await caches.keys();
+        for (let key of keys) {
+          await caches.delete(key);
+        }
+      }
+      alert("✓ Old cache cleared! Reloading updated version...");
+      window.location.reload(true);
+    } catch (e) {
+      window.location.reload();
+    }
+  }
+}
+window.clearAppCacheAndReload = clearAppCacheAndReload;
+
 async function requestNotificationPermission() {
   if(!("Notification" in window)) return false;
   if(Notification.permission === "granted") return true;
@@ -2851,6 +2886,120 @@ async function requestNotificationPermission() {
     const result = await Notification.requestPermission();
     return result === "granted";
   } catch(e) { return false; }
+}
+
+let _notifBlinkInterval = null;
+
+function blinkAppIconNotification(customTitle) {
+  const icon = document.getElementById("header-smiling-sun-icon");
+  if (icon) {
+    icon.classList.add("sun-blinking-notif");
+    setTimeout(() => {
+      icon.classList.remove("sun-blinking-notif");
+    }, 10000);
+  }
+
+  // App badge on mobile/PWA
+  if ("setAppBadge" in navigator) {
+    try { navigator.setAppBadge(1); } catch (e) {}
+  }
+
+  // Flash tab title
+  const origTitle = document.title;
+  let count = 0;
+  if (_notifBlinkInterval) clearInterval(_notifBlinkInterval);
+  _notifBlinkInterval = setInterval(() => {
+    document.title = (count % 2 === 0) ? "☀️ 🔔 New Reminder! · Suryasarthi" : origTitle;
+    count++;
+    if (count >= 12) {
+      clearInterval(_notifBlinkInterval);
+      document.title = origTitle;
+      if ("clearAppBadge" in navigator) {
+        try { navigator.clearAppBadge(); } catch (e) {}
+      }
+    }
+  }, 800);
+}
+window.blinkAppIconNotification = blinkAppIconNotification;
+
+async function sendSystemNotification(title, options = {}) {
+  blinkAppIconNotification(title);
+
+  if (!("Notification" in window)) return false;
+  if (Notification.permission !== "granted") {
+    const granted = await requestNotificationPermission();
+    if (!granted) return false;
+  }
+
+  const defaultOptions = {
+    icon: "./icon-192.png",
+    badge: "./icon-192.png",
+    vibrate: [300, 100, 300, 100, 300],
+    requireInteraction: true,
+    tag: "surya-lockscreen-notif",
+    renotify: true,
+    ...options
+  };
+
+  try {
+    if ("serviceWorker" in navigator) {
+      const reg = await navigator.serviceWorker.ready;
+      if (reg && reg.showNotification) {
+        await reg.showNotification(title, defaultOptions);
+        return true;
+      }
+    }
+  } catch (e) {
+    console.warn("SW showNotification error, falling back to window Notification:", e);
+  }
+
+  try {
+    const n = new Notification(title, defaultOptions);
+    if (options.onclick) n.onclick = options.onclick;
+    return true;
+  } catch (e) {
+    console.warn("Window Notification error:", e);
+    return false;
+  }
+}
+
+function showBatteryOptModal() {
+  const modal = document.getElementById("battery-opt-modal");
+  if (modal) {
+    modal.style.display = "flex";
+    requestNotificationPermission();
+  }
+}
+
+function closeBatteryOptModal() {
+  const modal = document.getElementById("battery-opt-modal");
+  if (modal) modal.style.display = "none";
+}
+
+async function testLockscreenNotification() {
+  const granted = await requestNotificationPermission();
+  if (!granted) {
+    alert("Please allow notification permissions in your browser when prompted!");
+    return;
+  }
+
+  const name = cfg.userName || "Vaibhav";
+  const success = await sendSystemNotification(`💧 Water Hydration Lock-Screen Test · ${name}`, {
+    body: `💧 Lock-Screen Notification Active! Time to drink 1 glass/bottle of water. Tap to log water now!`,
+    tag: "surya-water-test",
+    vibrate: [300, 100, 300, 100, 300],
+    data: { type: "water" },
+    actions: [
+      { action: "log_water", title: "💧 +1 Water Confirmed" },
+      { action: "view_diet", title: "🥗 View Tracker" }
+    ]
+  });
+
+  if (success) {
+    alert("✓ Test Notification Sent! Lock your phone screen now to test lock-screen water reminders!");
+  } else {
+    alert("⚠️ Could not send notification. Please check browser Notification permissions in Android Settings.");
+  }
 }
 
 // ── Morning greeting: fires when app opened near alarm time ─────
@@ -3423,11 +3572,16 @@ function showCompanionModal(item) {
 
   const lang = cfg.quoteLang || cfg.pranaLang || "hi";
   const msg = getNotificationMessageInLang(item, lang);
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   const avEl = document.getElementById("companion-avatar"); if(avEl) avEl.textContent = item.avatar || "☀️";
-  const bgEl = document.getElementById("companion-badge");  if(bgEl) bgEl.textContent = "💛 SURYA SARATHI · " + (item.badge || "BEST FRIEND CHECK-IN");
-  const ttEl = document.getElementById("companion-title");  if(ttEl) ttEl.textContent = item.title;
+  const bgEl = document.getElementById("companion-badge");  if(bgEl) bgEl.textContent = "Online · " + (item.badge || "Best Friend Check-In");
+  const ttEl = document.getElementById("companion-title");  if(ttEl) ttEl.textContent = item.title || "Suryasarthi Best Friend";
   const bdEl = document.getElementById("companion-body");   if(bdEl) bdEl.textContent = msg;
+
+  const wtEl = document.getElementById("whatsapp-time-label");   if(wtEl) wtEl.textContent = timeStr;
+  const btEl = document.getElementById("whatsapp-bubble-time");  if(btEl) btEl.textContent = timeStr;
 
   const modal = document.getElementById("companion-modal");
   if (modal) {
@@ -3447,6 +3601,15 @@ function closeCompanionModal() {
   }
   qClear();
 }
+
+function startPracticeFromCompanion() {
+  closeCompanionModal();
+  startSession();
+}
+
+window.showCompanionModal = showCompanionModal;
+window.closeCompanionModal = closeCompanionModal;
+window.startPracticeFromCompanion = startPracticeFromCompanion;
 
 function speakCompanionNotification(item) {
   if (voiceMuted || !window.speechSynthesis) return;
@@ -4270,43 +4433,101 @@ function renderFullDayDietPlan() {
   if (!container) return;
 
   const now = new Date();
+  const dateStr = now.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric", year: "numeric" });
+  const dateHeaderEl = document.getElementById("diet-prep-date-header");
+  if (dateHeaderEl) {
+    dateHeaderEl.innerHTML = `📅 <strong>Date:</strong> ${dateStr} · Advance Prep Timetable`;
+  }
+
   const dayOfWeek = now.getDay();
   const dayIdx = dayOfWeek === 0 ? 6 : (dayOfWeek - 1);
   const dailyMenu = AYURVEDIC_DIET_PLAN_7DAYS[dayIdx];
 
   const meals = [
-    { key: "breakfast", badge: dailyMenu.breakfast.mealBadge, icon: "🥣" },
-    { key: "lunch", badge: dailyMenu.lunch.mealBadge, icon: "🍲" },
-    { key: "dinner", badge: dailyMenu.dinner.mealBadge, icon: "🌙" }
+    {
+      key: "early_morning",
+      timeSlot: "06:30 AM",
+      badge: "Early Morning Prana Hydration",
+      icon: "💧",
+      prepNote: "⏰ <strong>Advance Prep:</strong> Soak 5 almonds & 1 tsp cumin seeds in water the night before at 9:00 PM.",
+      veg: { title: "Jeera-Ajwain Warm Water & Soaked Almonds", body: "Warm water infused with cumin & ajwain. Eat 5 peeled soaked almonds for digestion & Agni activation." },
+      nonveg: { title: "Jeera-Ajwain Warm Water & Soaked Almonds", body: "Warm water infused with cumin & ajwain. Eat 5 peeled soaked almonds for digestion & Agni activation." }
+    },
+    {
+      key: "breakfast",
+      timeSlot: "08:30 AM",
+      badge: dailyMenu.breakfast.mealBadge,
+      icon: "🥣",
+      prepNote: "⏰ <strong>Advance Prep:</strong> Sprout moong beans 24 hrs prior. Chop veggies 15 min before breakfast.",
+      veg: dailyMenu.breakfast.veg,
+      nonveg: dailyMenu.breakfast.nonveg
+    },
+    {
+      key: "mid_morning",
+      timeSlot: "11:00 AM",
+      badge: "Mid-Morning Vitality & Prana Refreshment",
+      icon: "🍊",
+      prepNote: "⏰ <strong>Advance Prep:</strong> Keep fresh tender coconut or papaya chilled in advance.",
+      veg: { title: "Tender Coconut Water & Fresh Papaya", body: "1 Glass fresh coconut water / 1 bowl fresh papaya slices. Replenishes electrolytes & improves skin glow." },
+      nonveg: { title: "Tender Coconut Water & Fresh Papaya", body: "1 Glass fresh coconut water / 1 bowl fresh papaya slices. Replenishes electrolytes & improves skin glow." }
+    },
+    {
+      key: "lunch",
+      timeSlot: "01:30 PM",
+      badge: dailyMenu.lunch.mealBadge,
+      icon: "🍲",
+      prepNote: "⏰ <strong>Advance Prep:</strong> Cook dal & veggies 30 min before lunch. Prepare fresh curd.",
+      veg: dailyMenu.lunch.veg,
+      nonveg: dailyMenu.lunch.nonveg
+    },
+    {
+      key: "evening",
+      timeSlot: "05:00 PM",
+      badge: "Evening Prana Refreshment & Seeds",
+      icon: "☕",
+      prepNote: "⏰ <strong>Advance Prep:</strong> Dry-roast makhana/pumpkin seeds in advance & store in airtight jar.",
+      veg: { title: "Golden Turmeric Milk / Herbal Tea & Roasted Makhana", body: "Warm turmeric milk or herbal tea + 1 cup dry-roasted lotus seeds (makhana) or chia seeds." },
+      nonveg: { title: "Golden Turmeric Milk / Herbal Tea & Roasted Makhana", body: "Warm turmeric milk or herbal tea + 1 cup dry-roasted lotus seeds (makhana) or chia seeds." }
+    },
+    {
+      key: "dinner",
+      timeSlot: "07:30 PM",
+      badge: dailyMenu.dinner.mealBadge,
+      icon: "🌙",
+      prepNote: "⏰ <strong>Advance Prep:</strong> Prepare light soup by 7:00 PM for easy sleep digestion.",
+      veg: dailyMenu.dinner.veg,
+      nonveg: dailyMenu.dinner.nonveg
+    }
   ];
 
   let html = "";
   meals.forEach(m => {
-    const vegPlan = dailyMenu[m.key].veg;
-    const nonVegPlan = dailyMenu[m.key].nonveg;
-
     html += `
-      <div class="diet-meal-block" style="background:var(--surf);border:1px solid var(--bdr);border-radius:16px;padding:14px;">
-        <div style="font-size:12px;font-weight:900;color:var(--acc-lt);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
-          <span>${m.icon} ${m.badge}</span>
+      <div class="diet-meal-block" style="background:var(--surf);border:1px solid var(--bdr);border-radius:16px;padding:14px;box-shadow:0 4px 16px rgba(0,0,0,0.3)">
+        <div style="font-size:12px;font-weight:900;color:var(--acc-lt);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between">
+          <span style="display:flex;align-items:center;gap:6px">${m.icon} <strong>${m.timeSlot}</strong> — ${m.badge}</span>
         </div>
         
+        <div style="font-size:10px;color:var(--txt2);background:rgba(245,158,11,0.1);border-left:3px solid var(--acc);padding:5px 8px;border-radius:0 8px 8px 0;margin-bottom:8px">
+          ${m.prepNote}
+        </div>
+
         <!-- Veg Plan Item -->
-        <div class="diet-subcard-veg" style="background:rgba(29,184,127,0.08);border:1px solid var(--acc-dim);border-radius:12px;padding:10px;margin-bottom:8px">
+        <div class="diet-subcard-veg" style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:10px;margin-bottom:8px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-            <span style="font-size:12px;font-weight:900;color:var(--txt)">${vegPlan.title}</span>
-            <span style="font-size:9px;background:rgba(29,184,127,0.25);color:var(--acc-lt);padding:2px 6px;border-radius:6px;font-weight:800">🌱 VEG</span>
+            <span style="font-size:12px;font-weight:900;color:var(--txt)">${m.veg.title}</span>
+            <span style="font-size:9px;background:rgba(16,185,129,0.25);color:#34D399;padding:2px 6px;border-radius:6px;font-weight:800">🌱 VEG</span>
           </div>
-          <div style="font-size:11px;color:var(--txt2);line-height:1.5">${vegPlan.body}</div>
+          <div style="font-size:11px;color:var(--txt2);line-height:1.5">${m.veg.body}</div>
         </div>
 
         <!-- Non-Veg Plan Item -->
         <div class="diet-subcard-nonveg" style="background:rgba(255,159,67,0.08);border:1px solid rgba(255,159,67,0.3);border-radius:12px;padding:10px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-            <span style="font-size:12px;font-weight:900;color:var(--txt)">${nonVegPlan.title}</span>
+            <span style="font-size:12px;font-weight:900;color:var(--txt)">${m.nonveg.title}</span>
             <span style="font-size:9px;background:rgba(255,159,67,0.25);color:#FF9F43;padding:2px 6px;border-radius:6px;font-weight:800">🍗 NON-VEG</span>
           </div>
-          <div style="font-size:11px;color:var(--txt2);line-height:1.5">${nonVegPlan.body}</div>
+          <div style="font-size:11px;color:var(--txt2);line-height:1.5">${m.nonveg.body}</div>
         </div>
       </div>
     `;
@@ -4509,6 +4730,10 @@ function closeDietModal() {
 }
 
 window.showDietModal = showDietModal;
+window.showdietmodal = showDietModal;
+window.showDietmodal = showDietModal;
+window.showdietPlan = showDietModal;
+window.showDietPlan = showDietModal;
 window.closeDietModal = closeDietModal;
 window.switchDietTab = switchDietTab;
 window.toggleModalReminder = toggleModalReminder;
@@ -4633,41 +4858,20 @@ function triggerWaterHydrationNotification() {
     ? `💧 हाइड्रेशन रिमांडर ${name}! अपनी ऊर्जा और स्वास्थ्य के लिए 1 ${unitName} पानी पिएं (${logged}/${target} ${unitPlural} पूर्ण)। दर्ज़ करने के लिए क्लिक करें!`
     : `💧 Hydration Reminder ${name}! Time to drink 1 ${unitName} of water (${logged}/${target} ${unitPlural} logged). Tap to confirm 1 ${unitName}!`;
 
-  if ("Notification" in window && Notification.permission === "granted") {
-    try {
-      if (navigator.serviceWorker && navigator.serviceWorker.ready) {
-        navigator.serviceWorker.ready.then(reg => {
-          reg.showNotification(`💧 Water Hydration Check · ${name}`, {
-            body: msg,
-            icon: "./icon-192.png",
-            badge: "./icon-192.png",
-            tag: "surya-water-notif",
-            renotify: true,
-            vibrate: [200, 100, 200],
-            data: { type: "water" },
-            actions: [
-              { action: "log_water", title: "💧 +1 " + (metrics.bottleMl >= 1000 ? "Bottle" : "Glass") + " Confirmed" },
-              { action: "view_diet", title: "🥗 View Tracker" }
-            ]
-          });
-        });
-      } else {
-        const n = new Notification("💧 Water Hydration Check · " + name, {
-          body: msg,
-          icon: "./icon-192.png",
-          badge: "./icon-192.png",
-          tag: "surya-water-notif",
-          renotify: true,
-          vibrate: [200, 100, 200]
-        });
-        n.onclick = () => {
-          try { window.focus(); } catch (e) {}
-          quickLogWaterAndSpeak();
-          n.close();
-        };
-      }
-    } catch (e) { console.warn("Notification error:", e); }
-  }
+  sendSystemNotification(`💧 Water Hydration Check · ${name}`, {
+    body: msg,
+    tag: "surya-water-notif",
+    vibrate: [300, 100, 300, 100, 300],
+    data: { type: "water" },
+    actions: [
+      { action: "log_water", title: "💧 +1 " + (metrics.bottleMl >= 1000 ? "Bottle" : "Glass") + " Confirmed" },
+      { action: "view_diet", title: "🥗 View Tracker" }
+    ],
+    onclick: () => {
+      try { window.focus(); } catch (e) {}
+      quickLogWaterAndSpeak();
+    }
+  });
 
   // Voice speech if app visible or active
   if (document.visibilityState === "visible" && !voiceMuted && window.speechSynthesis && typeof SpeechSynthesisUtterance !== "undefined") {
@@ -4702,8 +4906,12 @@ navigator.serviceWorker && navigator.serviceWorker.addEventListener("message", e
 // ── UNIFIED visibilitychange — one handler, no duplicates ──────
 document.addEventListener("visibilitychange", async () => {
   if(document.visibilityState !== "visible") return;
-  // 1. Re-acquire wake lock if session active
-  if(sess.active && !sess.paused) await acquireWakeLock();
+  // 1. Re-acquire wake lock if session active OR Pranayama is active/open
+  const pranaOv = document.getElementById("prana-ov");
+  const isPranaOpen = pranaState.active || (pranaOv && pranaOv.classList.contains("show"));
+  if((sess.active && !sess.paused) || isPranaOpen) {
+    await acquireWakeLock();
+  }
   // 2. Check if goal needs rolling over (12 AM Midnight rule)
   checkMidnightRollover();
   // 3. Re-schedule 12 AM rollover timer
@@ -5468,18 +5676,63 @@ function isDietPlanUnlocked() {
 
 function updateDietPlanButtonLockUI() {
   const card = document.getElementById("card-view-diet-plan");
+  const infoHeader = document.getElementById("diet-card-info-header");
+  const pbarWrap = document.getElementById("diet-card-pbar-wrap");
+  const waterBtnRow = document.getElementById("diet-card-water-btn-row");
+  const waterBtn = document.getElementById("btn-quick-log-water");
   const btn = document.getElementById("btn-view-diet-plan");
   const unlocked = isDietPlanUnlocked();
 
-  if (card) {
-    card.style.display = unlocked ? "flex" : "none";
-  }
-  if (btn) {
-    btn.textContent = unlocked ? "View Plan" : "🔒 Locked";
-    btn.style.background = unlocked ? "var(--acc-dim)" : "var(--surf2)";
-    btn.style.borderColor = unlocked ? "var(--acc)" : "var(--bdr)";
-    btn.style.color = unlocked ? "var(--acc-lt)" : "var(--muted)";
-    btn.style.cursor = unlocked ? "pointer" : "not-allowed";
+  if (card) card.style.display = "block";
+
+  if (unlocked) {
+    // Goal Complete -> Show full Ayurvedic Diet & Hydration window card with title, progress bar, & View Plan button!
+    if (infoHeader) infoHeader.style.display = "flex";
+    if (pbarWrap) pbarWrap.style.display = "block";
+    if (waterBtnRow) {
+      waterBtnRow.style.display = "flex";
+      waterBtnRow.style.justify = "flex-end";
+      waterBtnRow.style.width = "auto";
+    }
+    if (waterBtn) {
+      waterBtn.style.width = "auto";
+      waterBtn.style.padding = "6px 12px";
+      waterBtn.style.fontSize = "11px";
+    }
+    if (card) {
+      card.style.background = "linear-gradient(135deg,rgba(245,158,11,0.15),rgba(56,189,248,0.12))";
+      card.style.border = "1.2px solid var(--bdr)";
+      card.style.padding = "10px 12px";
+      card.style.cursor = "pointer";
+    }
+    if (btn) {
+      btn.textContent = "View Plan";
+      btn.style.background = "rgba(16, 185, 129, 0.18)";
+      btn.style.borderColor = "#10B981";
+      btn.style.color = "#34D399";
+      btn.style.cursor = "pointer";
+    }
+  } else {
+    // Before Goal Complete -> HIDE diet details, title, subtitle, progress bar, & View Plan button! ONLY show +1 Drink Water button!
+    if (infoHeader) infoHeader.style.display = "none";
+    if (pbarWrap) pbarWrap.style.display = "none";
+    if (waterBtnRow) {
+      waterBtnRow.style.display = "flex";
+      waterBtnRow.style.justify = "center";
+      waterBtnRow.style.width = "100%";
+    }
+    if (waterBtn) {
+      waterBtn.style.width = "100%";
+      waterBtn.style.justifyContent = "center";
+      waterBtn.style.padding = "10px 16px";
+      waterBtn.style.fontSize = "13px";
+    }
+    if (card) {
+      card.style.background = "transparent";
+      card.style.border = "none";
+      card.style.padding = "0px";
+      card.style.cursor = "default";
+    }
   }
 }
 
@@ -5762,9 +6015,11 @@ function closePranaGuideModal() {
 
 /* ── Init ────────────────────────────────────────────────────── */
 loadAll();
+checkMidnightRollover(); // Rollover immediately if launched on a new day
 saveAll();
 render();
 updateWaterTrackerUI();
+updateDietPlanButtonLockUI();
 updateClockDisplay();
 scheduleMidnightRollover(); // schedule goal unlock at 12:00 AM Midnight
 scheduleAlarm();            // schedule 5 AM alarm

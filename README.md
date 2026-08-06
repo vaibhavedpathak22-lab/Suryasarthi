@@ -48,9 +48,10 @@ Suryasarthi 108 is a premium, progressive Surya Namaskara (Sun Salutation), Ayur
 
 ## 🧩 Module 1: Core Surya Namaskara Practice Engine
 
-- **Exact User-Provided SURYA SARTHI Logo & Branding**:
-  - **Exact Image Copied**: Directly copied your exact uploaded logo image file (`SURYA SARTHI` meditating yogi emblem with `INNER HARMONY` tagline) to all 4 PWA app icon files (`icon-192.png`, `icon-512.png`, `icon-maskable-192.png`, `icon-maskable-512.png`).
-  - **Service Worker Cache-Bust (`surya-v60`)**: Bumped SW cache version to `surya-v60` so all mobile devices automatically display the exact uploaded logo icon upon installation!
+- **Vibrant FHD Colorized SURYA SARTHI Logo & Icons**:
+  - **Preserved Human Yogi Posture**: Preserved the exact meditating yogi pose, lotus petals arrangement, radiant sunburst rays, sage green leaves at base, bold text **SURYA SARTHI**, and tagline **INNER HARMONY** from your reference image.
+  - **Vibrant FHD High-Definition Colors**: Enhanced all 4 PWA app icon launcher files (`icon-192.png`, `icon-512.png`, `icon-maskable-192.png`, `icon-maskable-512.png`) with rich solar gold rays, saffron/rose lotus petals, vivid emerald green leaves, and sharp dark navy text.
+  - **SW Cache-Bust (`surya-v61`)**: Bumped SW cache version to `surya-v61` so all mobile devices automatically activate the vibrant FHD logo!
   - **Free Trial vs. PRO Feature Lock Matrix**:
     - Free 7-Day Trial includes basic pacer & 7d history.
     - Advanced features (14d/21d history analytics, unlimited 108 rounds, full Ayurvedic diet timetable & shloka voice audio) are locked with 1-tap PRO upgrade prompts!

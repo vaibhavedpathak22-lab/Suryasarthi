@@ -435,6 +435,7 @@ function loadAll() {
   }
 
   voiceMuted = !cfg.voiceOn;
+  try { cleanupOldWorkoutReels(); } catch(e){}
 }
 function saveAll() {
   try { localStorage.setItem(KEY, JSON.stringify({cfg,data})); }
@@ -701,8 +702,18 @@ function handleMainBtn() {
     }
     if(checkAppLockState()) return;
 
-    // Fresh start practice session directly when tapped on main screen
-    startFreshPracticeSession();
+    // Unlock Speech Synthesis immediately on click gesture to prevent mobile browser silent muting
+    if (window.speechSynthesis) {
+      try {
+        window.speechSynthesis.resume();
+        const unlockUtterance = new SpeechSynthesisUtterance(" ");
+        unlockUtterance.volume = 0.01;
+        window.speechSynthesis.speak(unlockUtterance);
+      } catch(e){}
+    }
+
+    // Show Daily Gita Motivational Quote first before starting practice
+    showGitaQuoteModal(false);
     return;
   }
   if(!sess.paused) {
@@ -760,6 +771,21 @@ function completeSet() {
   }
 
   saveAll();
+
+  // ── Lifetime milestone: every 1000 sets (1000, 2000, 3000...) ──────────────
+  if (data.totalAllTime > 0 && data.totalAllTime % 1000 === 0) {
+    const mCount = data.totalAllTime;
+    setTimeout(() => {
+      const name = cfg.userName || "Vaibhav";
+      speakText("Congratulations " + name + "! Incredible milestone achieved: " + mCount + " total Surya Namaskara completed!");
+      autoGenerateWorkoutReel({
+        type: "lifetime_milestone",
+        todaySets: done,
+        totalSets: mCount,
+        name: name
+      });
+    }, 1500);
+  }
 
   // ── Recovery milestone: every 400 sets ──────────────────────
   const RECOVERY_EVERY = 400;
@@ -915,9 +941,33 @@ function finishSession(goalDone) {
     const todaySets  = todayDone();
     const totalSets  = data.totalAllTime;
     const name = cfg.userName || "Vaibhav";
-    const msg = "Namaste " + name + "! Today's target of " + todaySets + " rounds complete and locked. "
-              + "Take 1 minute rest now. Tap Start Pranayama whenever you are ready.";
+    const streak = computeStreak();
+
+    let streakMsg = "";
+    const isStreakMilestone = [7, 14, 21, 30, 50, 100].includes(streak);
+    if (streak === 7) {
+      streakMsg = " Outstanding dedication! 7 days continuous Surya Namaskara streak completed! Keep glowing!";
+    } else if (streak === 14) {
+      streakMsg = " Incredible focus! 14 days continuous Surya Namaskara streak achieved! You are building true discipline!";
+    } else if (streak === 21) {
+      streakMsg = " Phenomenal achievement! 21 days continuous Surya Namaskara habit formed! You are transformed!";
+    } else if (streak === 30) {
+      streakMsg = " Extraordinary commitment! 30 days continuous Surya Namaskara streak! You are a true Yogi!";
+    }
+
+    const msg = "Namaste " + name + "! Today's target of " + todaySets + " rounds complete and locked." + streakMsg;
     setTimeout(()=>speakText(msg), 800);
+
+    // Auto-Generate Social Media Reel on Goal Completion / Streak Milestone
+    setTimeout(() => {
+      autoGenerateWorkoutReel({
+        type: isStreakMilestone ? "streak_milestone" : "goal_complete",
+        todaySets: todaySets,
+        totalSets: totalSets,
+        streakDays: streak,
+        name: name
+      });
+    }, 2000);
 
     if(cfg.pranayamaAuto !== false) {
       setTimeout(()=>startPranaRestTransition(60), 3000);
@@ -2215,8 +2265,6 @@ function openSettings() {
   document.getElementById("cfg-prana-lang").value = cfg.pranaLang || "en";
   togSet("tog-alarm", cfg.alarmOn !== false);
   togSet("tog-daytime-notif", cfg.daytimeNotifOn !== false);
-  togSet("tog-diet-notif", cfg.dietNotifOn !== false);
-  togSet("tog-auto-diet-post-goal", cfg.autoShowDietPostGoal !== false);
   const unEl = document.getElementById("cfg-user-name"); if(unEl) unEl.value = cfg.userName || "Vaibhav";
   const uwEl = document.getElementById("cfg-user-weight"); if(uwEl) uwEl.value = cfg.userWeight || 66;
   const bsEl = document.getElementById("cfg-bottle-size"); if(bsEl) bsEl.value = cfg.bottleMl || 1000;
@@ -2248,8 +2296,6 @@ function closeSettings() {
   cfg.pranaLang        = document.getElementById("cfg-prana-lang").value || "en";
   cfg.alarmOn          = togGet("tog-alarm");
   cfg.daytimeNotifOn   = togGet("tog-daytime-notif");
-  cfg.dietNotifOn      = togGet("tog-diet-notif");
-  cfg.autoShowDietPostGoal = togGet("tog-auto-diet-post-goal");
   const unEl2 = document.getElementById("cfg-user-name"); if(unEl2) cfg.userName = unEl2.value.trim() || "Vaibhav";
   const uwEl2 = document.getElementById("cfg-user-weight"); if(uwEl2) cfg.userWeight = Math.max(30, Math.min(250, parseInt(uwEl2.value) || 66));
   const bsEl2 = document.getElementById("cfg-bottle-size"); if(bsEl2) cfg.bottleMl = parseInt(bsEl2.value) || 1000;
@@ -2261,16 +2307,15 @@ function closeSettings() {
   const qlEl = document.getElementById("cfg-quote-lang"); if(qlEl) cfg.quoteLang = qlEl.value;
   voiceMuted      = !cfg.voiceOn;
   scheduleAlarm();   // reschedule with new time
-  scheduleDaytimeNotifications(); // reschedule daytime notifications
   scheduleAyurvedicDietNotifications(); // reschedule diet notifications
   cfg.chartDays = parseInt(document.getElementById("cfg-chart-days").value) || 21;
   cfg.chartMode = document.getElementById("cfg-chart-mode").value || "bar";
   saveAll(); render();
   document.getElementById("dr").classList.remove("show");
 }
-const togSet=(id,on)=>document.getElementById(id).classList.toggle("on",on);
-const togGet=id=>document.getElementById(id).classList.contains("on");
-["tog-voice","tog-mantras","tog-breath","tog-auto","tog-prana","tog-alarm","tog-daytime-notif","tog-diet-notif","tog-auto-diet-post-goal"].forEach(id=>{
+const togSet=(id,on)=>{ const el=document.getElementById(id); if(el) el.classList.toggle("on",on); };
+const togGet=id=>{ const el=document.getElementById(id); return el ? el.classList.contains("on") : false; };
+["tog-voice","tog-mantras","tog-breath","tog-auto","tog-prana","tog-alarm","tog-daytime-notif"].forEach(id=>{
   const el = document.getElementById(id);
   if(el) el.addEventListener("click",function(){this.classList.toggle("on");});
 });
@@ -2722,7 +2767,9 @@ function snoozeAlarm(min) {
   _tryAndroidAlarm(now.getHours(), now.getMinutes());
 }
 
-function showGitaQuoteModal() {
+let _gitaAutoStartTimer = null;
+
+function showGitaQuoteModal(autoStartPracticeOnFinish = false) {
   // Close any open diet modal or settings drawer
   const dietModal = document.getElementById("diet-modal");
   if (dietModal) {
@@ -2739,6 +2786,11 @@ function showGitaQuoteModal() {
     dr.classList.remove("show");
   }
 
+  if(_gitaAutoStartTimer) {
+    clearTimeout(_gitaAutoStartTimer);
+    _gitaAutoStartTimer = null;
+  }
+
   const quote = getDailyGitaQuote();
   const lang = cfg.quoteLang || cfg.pranaLang || "hi";
   const meaning = getQuoteMeaning(quote, lang);
@@ -2752,23 +2804,10 @@ function showGitaQuoteModal() {
   const qlEl = document.getElementById("cfg-quote-lang"); if(qlEl) qlEl.value = lang;
   const mqEl = document.getElementById("modal-quote-lang"); if(mqEl) mqEl.value = lang;
 
-  // Update Snooze Controls state (Max 2 times)
-  const snLbl = document.getElementById("snooze-count-label");
-  const sn5   = document.getElementById("snooze-5-btn");
-  const sn10  = document.getElementById("snooze-10-btn");
-  if(snLbl && sn5 && sn10) {
-    if(alarmSnoozeCount >= 2) {
-      snLbl.textContent = "⏰ SNOOZE LIMIT REACHED (2/2 USED)";
-      snLbl.style.color = "var(--danger)";
-      sn5.disabled = true;  sn5.style.opacity = "0.4";  sn5.style.cursor = "not-allowed";
-      sn10.disabled = true; sn10.style.opacity = "0.4"; sn10.style.cursor = "not-allowed";
-    } else {
-      const remaining = 2 - alarmSnoozeCount;
-      snLbl.textContent = "⏰ SNOOZE ALARM (" + remaining + " LEFT)";
-      snLbl.style.color = "var(--warn)";
-      sn5.disabled = false;  sn5.style.opacity = "1";  sn5.style.cursor = "pointer";
-      sn10.disabled = false; sn10.style.opacity = "1"; sn10.style.cursor = "pointer";
-    }
+  const autoBanner = document.getElementById("gita-auto-start-banner");
+  if(autoBanner) {
+    autoBanner.style.display = "block";
+    autoBanner.innerHTML = "📖 Take your time to read or listen to today's Shloka &amp; Meaning. Tap <strong>'Start Surya Namaskara Now'</strong> whenever you are ready!";
   }
 
   // Ensure Start Surya Namaskara Now button is unlocked for user decision
@@ -2786,10 +2825,15 @@ function showGitaQuoteModal() {
     modal.classList.add("show");
   }
 
+  // Speak Gita Shloka & Meaning without auto-closing screen
   speakCurrentGitaQuote();
 }
 
 function closeGitaQuoteModal() {
+  if(_gitaAutoStartTimer) {
+    clearTimeout(_gitaAutoStartTimer);
+    _gitaAutoStartTimer = null;
+  }
   const modal = document.getElementById("gita-modal");
   if(modal) {
     modal.style.display = "none";
@@ -2799,36 +2843,58 @@ function closeGitaQuoteModal() {
 }
 
 function speakCurrentGitaQuote(onComplete) {
-  if(voiceMuted || !window.speechSynthesis || typeof SpeechSynthesisUtterance === "undefined") {
-    if(onComplete) onComplete();
+  if(!window.speechSynthesis || typeof SpeechSynthesisUtterance === "undefined") {
+    if(onComplete) {
+      const textLen = (getDailyGitaQuote().sanskrit.length + getQuoteMeaning().length);
+      const estDuration = Math.max(7000, textLen * 80);
+      setTimeout(onComplete, estDuration);
+    }
     return;
   }
+
+  // Resume Web Speech API if locked by browser
+  try { window.speechSynthesis.resume(); } catch(e){}
+
   const quote = getDailyGitaQuote();
   const lang = cfg.quoteLang || cfg.pranaLang || "hi";
   const meaning = getQuoteMeaning(quote, lang);
 
-  qClear();
+  const vList = window.speechSynthesis.getVoices() || [];
+  const bestHi = hiVoice || vList.find(v=>v.lang==="hi-IN"&&v.localService) || vList.find(v=>v.lang==="hi-IN") || vList.find(v=>v.lang.startsWith("hi")) || null;
 
   // 1. Speak Sanskrit Shloka first
-  const uShloka = new SpeechSynthesisUtterance(quote.sanskrit.replace(/\n/g, " "));
+  const cleanShloka = quote.sanskrit.replace(/\n/g, " ").replace(/॥/g, ".").replace(/।/g, ", ");
+  const uShloka = new SpeechSynthesisUtterance(cleanShloka);
   uShloka.lang = "hi-IN";
-  uShloka.rate = 0.92;
+  uShloka.rate = 0.82;
   uShloka.pitch = 1.0;
+  uShloka.volume = 1.0;
+  if(bestHi) uShloka.voice = bestHi;
   
-  // 2. Speak Meaning in user selected language
+  // 2. Speak Meaning in user selected language (Hindi / Marathi / English)
   const uMeaning = new SpeechSynthesisUtterance(meaning);
   if(lang === "en") {
-    uMeaning.lang = "en-IN"; uMeaning.rate = 0.95;
+    uMeaning.lang = "en-IN"; uMeaning.rate = 0.88; uMeaning.volume = 1.0;
+    const ev = vList.find(v=>v.lang==="en-IN") || vList.find(v=>v.lang.startsWith("en")) || null;
+    if(ev) uMeaning.voice = ev;
   } else if(lang === "mr") {
-    uMeaning.lang = "mr-IN"; uMeaning.rate = 0.92;
+    uMeaning.lang = "mr-IN"; uMeaning.rate = 0.82; uMeaning.volume = 1.0;
+    const mv = vList.find(v=>v.lang==="mr-IN") || vList.find(v=>v.lang.startsWith("mr")) || bestHi;
+    if(mv) uMeaning.voice = mv;
   } else {
-    uMeaning.lang = "hi-IN"; uMeaning.rate = 0.92;
+    uMeaning.lang = "hi-IN"; uMeaning.rate = 0.82; uMeaning.volume = 1.0;
+    if(bestHi) uMeaning.voice = bestHi;
   }
 
-  if(onComplete) {
-    uMeaning.onend = () => { onComplete(); };
-    uMeaning.onerror = () => { onComplete(); };
-  }
+  let completedOnce = false;
+  const handleEnd = () => {
+    if(completedOnce) return;
+    completedOnce = true;
+    if(onComplete) onComplete();
+  };
+
+  uMeaning.onend = handleEnd;
+  uMeaning.onerror = handleEnd;
 
   qSpeak(uShloka);
   qSpeak(uMeaning);
@@ -2836,6 +2902,7 @@ function speakCurrentGitaQuote(onComplete) {
 
 function startPracticeFromAlarm() {
   if(_snoozeTimeout) { clearTimeout(_snoozeTimeout); _snoozeTimeout = null; }
+  if(_gitaAutoStartTimer) { clearTimeout(_gitaAutoStartTimer); _gitaAutoStartTimer = null; }
   alarmSnoozeCount = 0;
   closeGitaQuoteModal();
   if(!sess.active) {
@@ -2868,7 +2935,6 @@ window.setAndroidAlarm = function(h, m) {
 
 window.setGitaQuoteLanguage = setGitaQuoteLanguage;
 window.snoozeAlarm = snoozeAlarm;
-
 
 /* ═══════════════════════════════════════════════════════════════
    DAILY ALARM SYSTEM
@@ -4625,11 +4691,9 @@ function toggleModalReminder(type) {
     }
     togSet("tog-modal-diet-notif", nextState);
     togSet("tog-modal-water-notif", nextState);
-    togSet("tog-diet-notif", nextState);
   } else if (type === "postgoal") {
     cfg.autoShowDietPostGoal = !togGet("tog-modal-postgoal-notif");
     togSet("tog-modal-postgoal-notif", cfg.autoShowDietPostGoal);
-    togSet("tog-auto-diet-post-goal", cfg.autoShowDietPostGoal);
   }
   saveAll();
   scheduleAyurvedicDietNotifications();
@@ -5172,14 +5236,10 @@ function selectSubTier(sku) {
   });
 }
 
-function showPaywallOverlay() {
-  const ov = document.getElementById("paywall-ov");
-  if(ov) ov.classList.add("show");
-}
-
 function closePaywallOverlay() {
   const ov = document.getElementById("paywall-ov");
   if(ov) ov.classList.remove("show");
+  checkAppLockState();
 }
 
 async function executePlayPurchase() {
@@ -6070,7 +6130,6 @@ updateClockDisplay();
 scheduleMidnightRollover(); // schedule goal unlock at 12:00 AM Midnight
 scheduleAlarm();            // schedule 5 AM alarm
 checkMorningGreeting();     // greet if user opens app near alarm time
-scheduleDaytimeNotifications(); // schedule best-friend daytime check-in notifications
 scheduleAyurvedicDietNotifications(); // schedule Ayurvedic diet notifications
 scheduleWaterIntakeReminders(); // schedule 2-hourly water hydration reminders
 checkSubscriptionReminder();
@@ -6098,3 +6157,700 @@ try {
     setTimeout(() => showDietModal("water", "water"), 800);
   }
 } catch (e) {}
+
+/* ═══════════════════════════════════════════════════════════════
+   30-SECOND WHATSAPP STATUS HIGHLIGHT RECORDING & SHARING ENGINE
+   ═══════════════════════════════════════════════════════════════ */
+let statusMediaRecorder = null;
+let statusRecordedChunks = [];
+let statusRecordTimer = null;
+let statusRecordSeconds = 0;
+let statusRecordedBlob = null;
+
+async function startStatusRecording() {
+  try {
+    statusRecordedChunks = [];
+    statusRecordedBlob = null;
+
+    let stream;
+    // 1. Capture screen & app audio (prompts Android system recording dialog)
+    if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+      stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { displaySurface: 'browser', width: { max: 1080 }, height: { max: 1920 } },
+        audio: true
+      });
+    } else {
+      alert("Screen recording API is not supported in this browser. Please open in Google Chrome on Android.");
+      return;
+    }
+
+    const mimeTypes = ['video/webm;codecs=vp9,opus', 'video/webm', 'video/mp4'];
+    let selectedMime = mimeTypes.find(m => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) || '';
+    
+    statusMediaRecorder = new MediaRecorder(stream, selectedMime ? { mimeType: selectedMime } : {});
+
+    statusMediaRecorder.ondataavailable = (e) => {
+      if (e.data && e.data.size > 0) statusRecordedChunks.push(e.data);
+    };
+
+    statusMediaRecorder.onstop = () => {
+      statusRecordedBlob = new Blob(statusRecordedChunks, { type: selectedMime || 'video/webm' });
+      if (stream) stream.getTracks().forEach(t => t.stop());
+      showStatusVideoModal();
+    };
+
+    statusMediaRecorder.start(1000);
+    statusRecordSeconds = 0;
+    updateStatusRecordBtnUI(true);
+
+    statusRecordTimer = setInterval(() => {
+      statusRecordSeconds++;
+      updateStatusRecordBtnUI(true);
+      if (statusRecordSeconds >= 30) {
+        stopStatusRecording();
+      }
+    }, 1000);
+
+  } catch (err) {
+    if (err.name !== "AbortError") {
+      console.warn("Screen recording cancelled or failed:", err);
+    }
+    updateStatusRecordBtnUI(false);
+  }
+}
+
+function stopStatusRecording() {
+  if (statusRecordTimer) { clearInterval(statusRecordTimer); statusRecordTimer = null; }
+  if (statusMediaRecorder && statusMediaRecorder.state !== 'inactive') {
+    statusMediaRecorder.stop();
+  }
+  updateStatusRecordBtnUI(false);
+}
+
+function toggleStatusRecording() {
+  if (statusMediaRecorder && statusMediaRecorder.state === 'recording') {
+    stopStatusRecording();
+  } else {
+    startStatusRecording();
+  }
+}
+
+function updateStatusRecordBtnUI(isRecording) {
+  const lbl = document.getElementById("rec-status-lbl");
+  const dot = document.getElementById("rec-dot");
+  if (!lbl || !dot) return;
+
+  if (isRecording) {
+    dot.style.background = "#EF4444";
+    dot.style.animation = "pulse 1s infinite";
+    lbl.textContent = `🔴 Recording 30s Status: ${statusRecordSeconds}s / 30s (Tap to stop)`;
+  } else {
+    dot.style.background = "#EF4444";
+    dot.style.animation = "none";
+    lbl.textContent = "🎥 Record 30s WhatsApp Status Clip";
+  }
+}
+
+function showStatusVideoModal() {
+  if (!statusRecordedBlob) return;
+  const vid = document.getElementById("status-video-preview");
+  if (vid) {
+    vid.src = URL.createObjectURL(statusRecordedBlob);
+  }
+  const modal = document.getElementById("status-video-modal");
+  if (modal) {
+    modal.style.display = "flex";
+    modal.classList.add("show");
+  }
+}
+
+function closeStatusVideoModal() {
+  const modal = document.getElementById("status-video-modal");
+  if (modal) {
+    modal.style.display = "none";
+    modal.classList.remove("show");
+  }
+  const vid = document.getElementById("status-video-preview");
+  if (vid) { vid.pause(); vid.src = ""; }
+}
+
+async function shareStatusVideoToWhatsApp() {
+  if (!statusRecordedBlob) return;
+
+  const ext = statusRecordedBlob.type.includes("mp4") ? "mp4" : "webm";
+  const file = new File([statusRecordedBlob], `surya_namaskara_30s_status.${ext}`, { type: statusRecordedBlob.type });
+
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: "Surya Namaskara 30s Status Clip",
+        text: "Completed my Surya Namaskara session! ☀️🧘 #SuryaNamaskara #SuryaSarathi"
+      });
+      return;
+    } catch (e) {
+      if (e.name !== 'AbortError') console.error("Share failed:", e);
+    }
+  }
+  
+  downloadStatusVideo();
+  alert("Video downloaded! You can now attach it directly to your WhatsApp Status.");
+}
+
+function downloadStatusVideo() {
+  if (!statusRecordedBlob) return;
+  const ext = statusRecordedBlob.type.includes("mp4") ? "mp4" : "webm";
+  const url = URL.createObjectURL(statusRecordedBlob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `SuryaNamaskara_30s_Status_${Date.now()}.${ext}`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+window.toggleStatusRecording = toggleStatusRecording;
+window.closeStatusVideoModal = closeStatusVideoModal;
+window.shareStatusVideoToWhatsApp = shareStatusVideoToWhatsApp;
+window.downloadStatusVideo = downloadStatusVideo;
+
+/* ═══════════════════════════════════════════════════════════════
+   AUTOMATIC HIGHLIGHT REEL GENERATOR ENGINE
+   Auto-Captures Goal Complete & 1000/2000/3000 Milestone Achievements!
+   ═══════════════════════════════════════════════════════════════ */
+let generatedReelBlob = null;
+
+async function autoGenerateWorkoutReel(info) {
+  try {
+    const canvas = document.createElement("canvas");
+    canvas.width = 720;
+    canvas.height = 1280; // 9:16 Vertical Reel format
+    const ctx = canvas.getContext("2d");
+
+    const name = info?.name || cfg.userName || "Vaibhav";
+    const todaySets = info?.todaySets || todayDone();
+    const totalSets = info?.totalSets || data.totalAllTime;
+    const type = info?.type || "goal_complete";
+    const streak = computeStreak();
+
+    // Web Audio Context for background chime + voice synthesis
+    let audioCtx = null;
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch(e){}
+
+    const dest = audioCtx ? audioCtx.createMediaStreamDestination() : null;
+
+    // Play Solfeggio 528Hz bell chime into destination stream
+    if (audioCtx && dest) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(528, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 4.0);
+      osc.connect(gain);
+      gain.connect(dest);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 4.0);
+    }
+
+    const stream = canvas.captureStream(30); // 30 FPS
+    if (dest && dest.stream.getAudioTracks().length > 0) {
+      stream.addTrack(dest.stream.getAudioTracks()[0]);
+    }
+
+    const mimeTypes = ['video/webm;codecs=vp9,opus', 'video/webm', 'video/mp4'];
+    let selectedMime = mimeTypes.find(m => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) || '';
+
+    const recorder = new MediaRecorder(stream, selectedMime ? { mimeType: selectedMime } : {});
+    const chunks = [];
+
+    recorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+
+    recorder.onstop = () => {
+      generatedReelBlob = new Blob(chunks, { type: selectedMime || 'video/webm' });
+      
+      // Register today's reel in storage tracking (default savedOrShared = false)
+      if (!data.reels) data.reels = {};
+      const tKey = todayKey();
+      if (!data.reels[tKey]) {
+        data.reels[tKey] = { date: tKey, savedOrShared: false, timestamp: Date.now() };
+        saveAll();
+      }
+      cleanupOldWorkoutReels();
+      showReelSocialModal(info);
+    };
+
+    recorder.start(1000);
+
+    // Render 9:16 Animated Canvas Reel (15 seconds total: 5s Gita Opening + 10s Workout Highlights)
+    let frame = 0;
+    const maxFrames = 450; // 15 seconds @ 30 FPS
+    const d = new Date();
+    const dateStr = d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+
+    // Fetch Today's Gita Quote & Meaning for Scene 1
+    const gQuote = typeof getDailyGitaQuote === "function" ? getDailyGitaQuote() : { ref: "श्रीमद्भगवद्गीता २.४७", shloka: "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि॥", hi: "तुम्हारा अधिकार केवल कर्म करने में है, उसके फलों में कभी नहीं।" };
+    const gMeaning = typeof getQuoteMeaning === "function" ? getQuoteMeaning(gQuote) : (gQuote.hi || gQuote.en || "");
+
+    const animInterval = setInterval(() => {
+      frame++;
+
+      // ═════════════════════════════════════════════════════════════
+      // SCENE 1 (Frames 1 to 150 = 0s to 5s): BHAGAVAD GITA OPENING
+      // ═════════════════════════════════════════════════════════════
+      if (frame <= 150) {
+        let opacity = 1;
+        if (frame > 120) opacity = (150 - frame) / 30; // Smooth fade out to Scene 2
+
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
+
+        // 1. Deep Emerald & Solar Gold Shimmer Gradient
+        const gGrad = ctx.createRadialGradient(360, 400, 40, 360, 640, 750);
+        gGrad.addColorStop(0, '#132A1C');
+        gGrad.addColorStop(0.6, '#0B1710');
+        gGrad.addColorStop(1, '#050B08');
+        ctx.fillStyle = gGrad;
+        ctx.fillRect(0, 0, 720, 1280);
+
+        // 2. Rotating Aura Rays
+        ctx.save();
+        ctx.translate(360, 450);
+        ctx.rotate((frame * 0.01) % (Math.PI * 2));
+        ctx.strokeStyle = "rgba(245, 158, 11, 0.15)";
+        ctx.lineWidth = 2.5;
+        for (let i = 0; i < 12; i++) {
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(Math.cos(i * Math.PI / 6) * 380, Math.sin(i * Math.PI / 6) * 380);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        // 3. Header Banner
+        ctx.fillStyle = "#F59E0B";
+        ctx.font = "800 22px Outfit, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("☀️ MORNING MOTIVATION · BHAGAVAD GITA 📜", 360, 110);
+
+        // Reference
+        ctx.fillStyle = "#FBBF24";
+        ctx.font = "900 28px Outfit, sans-serif";
+        ctx.shadowColor = "rgba(251, 191, 36, 0.5)";
+        ctx.shadowBlur = 12;
+        ctx.fillText(gQuote.ref || "श्रीमद्भगवद्गीता", 360, 160);
+        ctx.shadowBlur = 0;
+
+        // 4. Sanskrit Shloka Box (Golden Devanagari)
+        const sBoxY = 210;
+        ctx.fillStyle = "rgba(29, 184, 127, 0.16)";
+        ctx.strokeStyle = "rgba(93, 224, 168, 0.45)";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.roundRect(50, sBoxY, 620, 360, 24);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#FFD700";
+        ctx.font = "900 30px 'Noto Sans Devanagari', serif";
+        const shlokaLines = (gQuote.shloka || "").split("\n");
+        let lineY = sBoxY + 80;
+        shlokaLines.forEach(line => {
+          ctx.fillText(line.trim(), 360, lineY);
+          lineY += 55;
+        });
+
+        // 5. Meaning / Translation Box
+        const mBoxY = 610;
+        ctx.fillStyle = "rgba(30, 41, 59, 0.88)";
+        ctx.strokeStyle = "rgba(96, 165, 250, 0.35)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(50, mBoxY, 620, 360, 20);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#93C5FD";
+        ctx.font = "800 20px Outfit, sans-serif";
+        ctx.fillText("MEANING / अर्थ / भावार्थ", 360, mBoxY + 45);
+
+        // Word-wrapped Meaning text
+        ctx.fillStyle = "#F9FAFB";
+        ctx.font = "600 23px 'Noto Sans Devanagari', Outfit, sans-serif";
+        wrapCanvasText(ctx, gMeaning, 360, mBoxY + 105, 550, 38);
+
+        // Bottom Watermark
+        ctx.fillStyle = "rgba(245, 158, 11, 0.8)";
+        ctx.font = "700 20px Outfit, sans-serif";
+        ctx.fillText("☀️ Suryasarthi 108 · Daily Yoga & Wisdom 🧘", 360, 1050);
+
+        ctx.restore();
+        return;
+      }
+
+      // ═════════════════════════════════════════════════════════════
+      // SCENE 2 (Frames 151 to 450 = 5s to 15s): WORKOUT HIGHLIGHTS
+      // ═════════════════════════════════════════════════════════════
+      const scene2Frame = frame - 150;
+      const scene2MaxFrames = 300;
+
+      // 1. Dark Solar Background Gradient
+      const grad = ctx.createRadialGradient(360, 400, 50, 360, 640, 800);
+      grad.addColorStop(0, '#1E293B');
+      grad.addColorStop(0.5, '#0F172A');
+      grad.addColorStop(1, '#070B14');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 720, 1280);
+
+      // 2. Rotating Sun Rays Aura
+      ctx.save();
+      ctx.translate(360, 450);
+      ctx.rotate((scene2Frame * 0.015) % (Math.PI * 2));
+      ctx.strokeStyle = "rgba(245, 158, 11, 0.12)";
+      ctx.lineWidth = 3;
+      for (let i = 0; i < 16; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(i * Math.PI / 8) * 350, Math.sin(i * Math.PI / 8) * 350);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // 3. Header Title & App Name
+      ctx.fillStyle = "#FBBF24";
+      ctx.font = "900 32px Outfit, sans-serif";
+      ctx.textAlign = "center";
+      ctx.shadowColor = "rgba(245, 158, 11, 0.6)";
+      ctx.shadowBlur = 15;
+      ctx.fillText("☀️ SURYASARTHI 108 🧘", 360, 90);
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = "#93C5FD";
+      ctx.font = "700 22px Outfit, sans-serif";
+      ctx.fillText(`Daily Practice Reel · ${dateStr}`, 360, 130);
+
+      // 4. User Name Badge
+      ctx.fillStyle = "rgba(30, 41, 59, 0.8)";
+      ctx.strokeStyle = "#38BDF8";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(160, 160, 400, 50, 25);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#F9FAFB";
+      ctx.font = "800 24px Outfit, sans-serif";
+      ctx.fillText(`Namaste, ${name}! 🙏`, 360, 194);
+
+      // 5. Central Animated Sun Disc Ring
+      const ringRadius = 140;
+      ctx.beginPath();
+      ctx.arc(360, 460, ringRadius, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(96, 165, 250, 0.25)";
+      ctx.lineWidth = 14;
+      ctx.stroke();
+
+      // Progress Arc
+      const progress = Math.min(1, scene2Frame / scene2MaxFrames);
+      ctx.beginPath();
+      ctx.arc(360, 460, ringRadius, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * progress));
+      ctx.strokeStyle = "#F59E0B";
+      ctx.lineWidth = 14;
+      ctx.lineCap = "round";
+      ctx.shadowColor = "rgba(245, 158, 11, 0.8)";
+      ctx.shadowBlur = 20;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Sanskrit Mantra inside ring
+      ctx.fillStyle = "#FFD700";
+      ctx.font = "900 36px 'Noto Sans Devanagari', serif";
+      ctx.fillText("ॐ सूर्याय नमः", 360, 440);
+
+      ctx.fillStyle = "#FBBF24";
+      ctx.font = "800 26px Outfit, sans-serif";
+      ctx.fillText(`Round ${todaySets} Mastered`, 360, 490);
+
+      // 6. Highlighted Achievement Card
+      const cardY = 660;
+      let cardBg = "rgba(16, 185, 129, 0.22)";
+      let cardBdr = "#10B981";
+
+      if (type === "streak_milestone") {
+        cardBg = "rgba(245, 158, 11, 0.25)";
+        cardBdr = "#F59E0B";
+      } else if (type === "lifetime_milestone") {
+        cardBg = "rgba(168, 85, 247, 0.25)";
+        cardBdr = "#A855F7";
+      }
+
+      ctx.fillStyle = cardBg;
+      ctx.strokeStyle = cardBdr;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(80, cardY, 560, 160, 20);
+      ctx.fill();
+      ctx.stroke();
+
+      if (type === "streak_milestone") {
+        const sDays = info?.streakDays || streak;
+        ctx.fillStyle = "#FDE68A";
+        ctx.font = "900 28px Outfit, sans-serif";
+        if (sDays === 21) {
+          ctx.fillText(`🌟 21 DAYS YOGA HABIT FORMED!`, 360, cardY + 50);
+        } else if (sDays === 14) {
+          ctx.fillText(`⚡ 14 DAYS CONTINUOUS PRACTICE!`, 360, cardY + 50);
+        } else if (sDays === 7) {
+          ctx.fillText(`🔥 7 DAYS CONTINUOUS STREAK!`, 360, cardY + 50);
+        } else {
+          ctx.fillText(`🔥 ${sDays} DAYS CONTINUOUS STREAK!`, 360, cardY + 50);
+        }
+
+        ctx.fillStyle = "#FBBF24";
+        ctx.font = "900 36px Outfit, sans-serif";
+        ctx.fillText(`Unbroken Discipline Mastered! ☀️`, 360, cardY + 110);
+
+      } else if (type === "lifetime_milestone") {
+        ctx.fillStyle = "#E9D5FF";
+        ctx.font = "900 28px Outfit, sans-serif";
+        ctx.fillText(`🏆 INCREDIBLE MILESTONE!`, 360, cardY + 50);
+
+        ctx.fillStyle = "#C084FC";
+        ctx.font = "900 38px Outfit, sans-serif";
+        ctx.fillText(`${totalSets} Total Sets Achieved! 🔥`, 360, cardY + 110);
+      } else {
+        ctx.fillStyle = "#34D399";
+        ctx.font = "900 28px Outfit, sans-serif";
+        ctx.fillText(`🎯 TODAY'S GOAL COMPLETED!`, 360, cardY + 50);
+
+        ctx.fillStyle = "#6EE7B7";
+        ctx.font = "900 38px Outfit, sans-serif";
+        ctx.fillText(`${todaySets} Sets Mastered Today! ☀️`, 360, cardY + 110);
+      }
+
+      // 7. Stats Grid (Today / Streak / Lifetime Total)
+      const gridY = 860;
+      const colWidth = 170;
+      const gap = 20;
+
+      // Col 1: Today
+      ctx.fillStyle = "rgba(6, 182, 212, 0.2)";
+      ctx.strokeStyle = "#06B6D4";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(80, gridY, colWidth, 120, 16);
+      ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle = "#7DD3FC"; ctx.font = "800 16px Outfit, sans-serif";
+      ctx.fillText("TODAY", 80 + colWidth/2, gridY + 35);
+      ctx.fillStyle = "#22D3EE"; ctx.font = "900 34px Outfit, sans-serif";
+      ctx.fillText(`${todaySets}`, 80 + colWidth/2, gridY + 85);
+
+      // Col 2: Streak
+      ctx.fillStyle = "rgba(16, 185, 129, 0.2)";
+      ctx.strokeStyle = "#10B981";
+      ctx.beginPath();
+      ctx.roundRect(80 + colWidth + gap, gridY, colWidth, 120, 16);
+      ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle = "#6EE7B7"; ctx.font = "800 16px Outfit, sans-serif";
+      ctx.fillText("STREAK", 80 + colWidth + gap + colWidth/2, gridY + 35);
+      ctx.fillStyle = "#34D399"; ctx.font = "900 34px Outfit, sans-serif";
+      ctx.fillText(`${streak}d 🔥`, 80 + colWidth + gap + colWidth/2, gridY + 85);
+
+      // Col 3: Total All-Time
+      ctx.fillStyle = "rgba(168, 85, 247, 0.2)";
+      ctx.strokeStyle = "#A855F7";
+      ctx.beginPath();
+      ctx.roundRect(80 + (colWidth + gap)*2, gridY, colWidth, 120, 16);
+      ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle = "#D8B4FE"; ctx.font = "800 16px Outfit, sans-serif";
+      ctx.fillText("TOTAL", 80 + (colWidth + gap)*2 + colWidth/2, gridY + 35);
+      ctx.fillStyle = "#C084FC"; ctx.font = "900 34px Outfit, sans-serif";
+      ctx.fillText(`${totalSets}`, 80 + (colWidth + gap)*2 + colWidth/2, gridY + 85);
+
+      // 8. Bottom Watermark & Call to Action
+      ctx.fillStyle = "rgba(245, 158, 11, 0.85)";
+      ctx.font = "800 22px Outfit, sans-serif";
+      ctx.fillText("✨ Health, Energy & Vitality Every Day ✨", 360, 1040);
+
+      ctx.fillStyle = "#94A3B8";
+      ctx.font = "600 18px Outfit, sans-serif";
+      ctx.fillText("Track your 108 Surya Namaskara with Suryasarthi App", 360, 1080);
+
+      if (frame >= maxFrames) {
+        clearInterval(animInterval);
+        if (recorder && recorder.state !== 'inactive') {
+          recorder.stop();
+        }
+      }
+    }, 1000 / 30);
+
+  } catch (err) {
+    console.error("Auto Reel generation error:", err);
+  }
+}
+
+function showReelSocialModal(info) {
+  if (!generatedReelBlob) return;
+  const vid = document.getElementById("reel-video-preview");
+  if (vid) {
+    vid.src = URL.createObjectURL(generatedReelBlob);
+  }
+  const subLbl = document.getElementById("reel-modal-subtitle");
+  if (subLbl && info) {
+    if (info.type === "streak_milestone") {
+      subLbl.textContent = `🔥 Continuous Streak Reel: ${info.streakDays || computeStreak()} Days Continuous Workout Mastered!`;
+    } else if (info.type === "lifetime_milestone") {
+      subLbl.textContent = `🏆 Milestone Reel: ${info.totalSets} Total Lifetime Sets Mastered!`;
+    } else {
+      subLbl.textContent = `🎯 Goal Complete Reel: ${info.todaySets} / ${info.todaySets} Rounds Mastered Today!`;
+    }
+  }
+  const modal = document.getElementById("reel-social-modal");
+  if (modal) {
+    modal.style.display = "flex";
+    modal.classList.add("show");
+  }
+}
+
+function closeReelSocialModal() {
+  const modal = document.getElementById("reel-social-modal");
+  if (modal) {
+    modal.style.display = "none";
+    modal.classList.remove("show");
+  }
+  const vid = document.getElementById("reel-video-preview");
+  if (vid) { vid.pause(); vid.src = ""; }
+}
+
+async function shareReelToSocialMedia() {
+  if (!generatedReelBlob) return;
+  markReelAsSavedOrShared();
+
+  const ext = generatedReelBlob.type.includes("mp4") ? "mp4" : "webm";
+  const file = new File([generatedReelBlob], `surya_namaskara_reel.${ext}`, { type: generatedReelBlob.type });
+
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: "My Surya Namaskara Workout Reel",
+        text: "Completed my Surya Namaskara session! ☀️🧘 #SuryaNamaskara #SuryaSarathi108"
+      });
+      return;
+    } catch (e) {
+      if (e.name !== 'AbortError') console.error("Share failed:", e);
+    }
+  }
+  
+  downloadReelVideo();
+  alert("Reel video downloaded! You can now upload it directly to your WhatsApp Status or Instagram Stories.");
+}
+
+function downloadReelVideo() {
+  if (!generatedReelBlob) return;
+  markReelAsSavedOrShared();
+
+  const ext = generatedReelBlob.type.includes("mp4") ? "mp4" : "webm";
+  const url = URL.createObjectURL(generatedReelBlob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `SuryaNamaskara_Workout_Reel_${Date.now()}.${ext}`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+/* ── Automatic Reel Data Storage Cleanup (Retain Last 2 Days Only) ── */
+function markReelAsSavedOrShared() {
+  if (!data.reels) data.reels = {};
+  const tKey = todayKey();
+  if (!data.reels[tKey]) {
+    data.reels[tKey] = { date: tKey, savedOrShared: true, timestamp: Date.now() };
+  } else {
+    data.reels[tKey].savedOrShared = true;
+  }
+  saveAll();
+}
+
+function cleanupOldWorkoutReels() {
+  if (!data.reels) data.reels = {};
+
+  const todayMs = new Date().setHours(0, 0, 0, 0);
+  const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
+
+  const dateKeys = Object.keys(data.reels);
+  let purgedCount = 0;
+
+  dateKeys.forEach(dateKey => {
+    const reelItem = data.reels[dateKey];
+    if (!reelItem) return;
+
+    const parts = dateKey.split("-").map(Number);
+    if (parts.length === 3) {
+      const reelDateMs = new Date(parts[0], parts[1] - 1, parts[2]).getTime();
+      const ageMs = todayMs - reelDateMs;
+
+      // Automatically remove reels that are older than 2 days if NOT downloaded or shared!
+      if (ageMs > TWO_DAYS_MS && !reelItem.savedOrShared) {
+        delete data.reels[dateKey];
+        try { localStorage.removeItem("surya_reel_" + dateKey); } catch(e){}
+        purgedCount++;
+      }
+    }
+  });
+
+  if (purgedCount > 0) {
+    saveAll();
+    console.log(`[Reel Auto-Cleanup] Automatically purged ${purgedCount} un-shared reel(s) older than 2 days.`);
+  }
+}
+
+function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
+  if (!text) return;
+  const words = text.split(' ');
+  let line = '';
+  for (let n = 0; n < words.length; n++) {
+    const testLine = line + words[n] + ' ';
+    const metrics = ctx.measureText(testLine);
+    const testWidth = metrics.width;
+    if (testWidth > maxWidth && n > 0) {
+      ctx.fillText(line.trim(), x, y);
+      line = words[n] + ' ';
+      y += lineHeight;
+    } else {
+      line = testLine;
+    }
+  }
+  ctx.fillText(line.trim(), x, y);
+}
+
+function handleOpenReelClick() {
+  if (generatedReelBlob) {
+    showReelSocialModal({
+      type: "goal_complete",
+      todaySets: todayDone(),
+      totalSets: data.totalAllTime,
+      name: cfg.userName || "Vaibhav"
+    });
+  } else {
+    setStatus("Generating Workout Reel...");
+    autoGenerateWorkoutReel({
+      type: "goal_complete",
+      todaySets: todayDone(),
+      totalSets: data.totalAllTime,
+      name: cfg.userName || "Vaibhav"
+    });
+  }
+}
+
+window.autoGenerateWorkoutReel = autoGenerateWorkoutReel;
+window.closeReelSocialModal = closeReelSocialModal;
+window.shareReelToSocialMedia = shareReelToSocialMedia;
+window.downloadReelVideo = downloadReelVideo;
+window.cleanupOldWorkoutReels = cleanupOldWorkoutReels;
+window.handleOpenReelClick = handleOpenReelClick;

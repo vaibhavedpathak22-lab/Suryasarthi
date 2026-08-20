@@ -1,43 +1,44 @@
 # SURYASARTHI - 108 | सूर्यसारथी - १०८
-> **Master Technical & User Guide: Ayurvedic Surya Namaskara, Guided Pranayama, Bhagavad Gita Shloka Alarms, 7-Day Rotating Sattvic Diet Engine & PWA Architecture**
+> **Master Technical & User Guide: Ayurvedic Surya Namaskara, Automated 9:16 Social Media Reel Generator, 30s WhatsApp Status Screen Recorder, Bhagavad Gita Shloka Engine, Guided Pranayama Standards & PWA Architecture**
 
 ---
 
 ## 📖 Table of Contents
-1. [🌟 Project Overview & Core Philosophy](#-project-overview--core-philosophy)
-2. [🧩 Module 1: Core Surya Namaskara Practice Engine](#-module-1-core-surya-namaskara-practice-engine)
-3. [📜 Module 2: Bhagavad Gita Shloka & Daily Alarm Engine](#-module-2-bhagavad-gita-shloka--daily-alarm-engine)
-4. [🥗 Module 3: 7-Day Rotating Ayurvedic Diet & Hydration Engine](#-module-3-7-day-rotating-ayurvedic-diet--hydration-engine)
-5. [🫁 Module 4: Guided Pranayama & Meditation Engine](#-module-4-guided-pranayama--meditation-engine)
-6. [🌞 Module 5: Daytime Relationship-Building Notifications](#-module-5-daytime-relationship-building-notifications)
-7. [👑 Module 6: PRO Subscription & Data Preservation Engine](#-module-6-pro-subscription--data-preservation-engine)
-8. [📊 Module 7: Analytics, Data Persistence & Offline PWA Architecture](#-module-7-analytics-data-persistence--offline-pwa-architecture)
-9. [📱 Comprehensive User Guide (Basic to Advanced Usage)](#-comprehensive-user-guide-basic-to-advanced-usage)
-10. [🛠️ Technical API Reference & Codebase Map](#%EF%B8%8F-technical-api-reference--codebase-map)
+1. [🌟 Project Overview & Tech Stack Philosophy](#-project-overview--tech-stack-philosophy)
+2. [🎨 Visual Aesthetics & FHD Display Design System](#-visual-aesthetics--fhd-display-design-system)
+3. [🧩 Module 1: Core Surya Namaskara Tracking & Daily Goal Scaling Algorithm](#-module-1-core-surya-namaskara-tracking--daily-goal-scaling-algorithm)
+4. [📜 Module 2: Bhagavad Gita Shloka & Morning Motivation Engine](#-module-2-bhagavad-gita-shloka--morning-motivation-engine)
+5. [🎬 Module 3: Automatic Social Media Reel Generator & WhatsApp Status Engine](#-module-3-automatic-social-media-reel-generator--whatsapp-status-engine)
+6. [📹 Module 4: 30-Second WhatsApp Status Screen Recording Engine](#-module-4-30-second-whatsapp-status-screen-recording-engine)
+7. [🫁 Module 5: Guided Pranayama & Classical Yoga / Ayurvedic Standards Engine](#-module-5-guided-pranayama--classical-yoga--ayurvedic-standards-engine)
+8. [👑 Module 6: PRO Subscription & Data Preservation Engine](#-module-6-pro-subscription--data-preservation-engine)
+9. [📊 Module 7: Analytics, Data Persistence & Offline PWA Architecture](#-module-7-analytics-data-persistence--offline-pwa-architecture)
+10. [📱 Comprehensive User Guide (Basic to Advanced Usage)](#-comprehensive-user-guide-basic-to-advanced-usage)
+11. [🛠️ Technical API Reference & Codebase Map](#%EF%B8%8F-technical-api-reference--codebase-map)
 
 ---
 
-## 🌟 Project Overview & Core Philosophy
+## 🌟 Project Overview & Tech Stack Philosophy
 
-**SURYASARTHI - 108 (सूर्यसारथी - १०८)** is a premium, zero-dependency web application and offline-first Progressive Web App (PWA). It bridges ancient Vedic health practices—Surya Namaskara, Pranayama, Bhagavad Gita wisdom, and Ayurvedic Ahara guidelines—with modern browser engineering.
+**SURYASARTHI - 108 (सूर्यसारथी - १०८)** is a premium, zero-dependency web application and offline-first Progressive Web App (PWA). It bridges ancient Vedic health practices—Surya Namaskara, Pranayama, Bhagavad Gita wisdom, and Ayurvedic Ahara guidelines—with cutting-edge browser engineering, canvas animation engines, and automated social video creation.
 
 ### Design & Tech Stack Philosophy:
-- **Core Technology**: Pure Vanilla HTML5, CSS3, and ES6+ JavaScript (`app.js`). Zero external libraries or heavy frameworks.
-- **Aesthetic System**: High-contrast, dark-mode visual hierarchy with rich gradients (`#182B21`, `#0B1210`), glassmorphic overlays, animated circular SVG rings, and crisp typography.
+- **Core Technology**: Pure Vanilla HTML5, Vanilla CSS3, and ES6+ JavaScript (`app.js`). Zero external frameworks or heavy npm bloat.
+- **Aesthetic System**: High-contrast, dark-mode visual hierarchy with rich emerald-solar gradients (`#182B21`, `#0B1210`), glassmorphic overlays, animated circular SVG solar rings, and crisp typography.
 - **Offline First**: 100% functional without an active internet connection via custom Service Worker caching (`sw.js`).
-- **Privacy First**: All practice data, streak counters, and configuration settings remain private on the user's device via `localStorage`.
+- **Privacy First**: All practice data, streak counters, video blobs, and configuration settings remain strictly private on the user's device via `localStorage` and `IndexedDB`.
 
 ---
 
 ## 🎨 Visual Aesthetics & FHD Display Design System
 
-Suryasarthi 108 is a premium, progressive Surya Namaskara (Sun Salutation), Ayurvedic Hydration & Diet, and Classical Pranayama PWA application built for maximum visual appeal on Full HD (1080p / high-DPI OLED / AMOLED / IPS) displays.
+Suryasarthi 108 is built for maximum visual impact on Full HD (1080p / high-DPI OLED / AMOLED / IPS) mobile and desktop displays.
 
 - **Modern High-Resolution Typography**:
-  - Integrated Google Fonts (`'Outfit'` & `'Inter'`) for ultra-clean tabular digits, sharp headings, and crystal clear readability on 1080p/4K screens.
+  - Integrated Google Fonts (`'Outfit'` & `'Inter'`) for ultra-clean tabular digits, sharp headings, and crystal clear readability.
   - Devanagari Sanskrit mantras styled with `'Noto Sans Devanagari'` and radiant solar gold text shadows.
 - **Deep Obsidian Emerald Palette & Glassmorphic Surfaces**:
-  - Dark Mode Background: Deep obsidian dark background (`#060D0A`) with a subtle radial spotlight gradient.
+  - Dark Mode Background: Deep obsidian background (`#060D0A`) with a subtle radial spotlight gradient.
   - Glassmorphic Cards: `backdrop-filter: blur(16px)` card surfaces with translucent borders (`rgba(52, 211, 153, 0.2)`), subtle inset light highlights, and soft drop-shadows.
 - **Neon Gradients & Display Glows**:
   - Solar-Emerald Ring SVG (`url(#ringGrad)`) with electric gradient stroke and neon drop-shadow glow.
@@ -46,30 +47,16 @@ Suryasarthi 108 is a premium, progressive Surya Namaskara (Sun Salutation), Ayur
 
 ---
 
-## 🧩 Module 1: Core Surya Namaskara Practice Engine
+## 🧩 Module 1: Core Surya Namaskara Tracking & Daily Goal Scaling Algorithm
 
-- **Vibrant FHD Colorized SURYA SARTHI Logo & Icons**:
-  - **Preserved Human Yogi Posture**: Preserved the exact meditating yogi pose, lotus petals arrangement, radiant sunburst rays, sage green leaves at base, bold text **SURYA SARTHI**, and tagline **INNER HARMONY** from your reference image.
-  - **Vibrant FHD High-Definition Colors**: Enhanced all 4 PWA app icon launcher files (`icon-192.png`, `icon-512.png`, `icon-maskable-192.png`, `icon-maskable-512.png`) with rich solar gold rays, saffron/rose lotus petals, vivid emerald green leaves, and sharp dark navy text.
-  - **SW Cache-Bust (`surya-v61`)**: Bumped SW cache version to `surya-v61` so all mobile devices automatically activate the vibrant FHD logo!
-  - **Free Trial vs. PRO Feature Lock Matrix**:
-    - Free 7-Day Trial includes basic pacer & 7d history.
-    - Advanced features (14d/21d history analytics, unlimited 108 rounds, full Ayurvedic diet timetable & shloka voice audio) are locked with 1-tap PRO upgrade prompts!
-
-- **Unified 12:00 AM Midnight Auto-Unlock Engine (`checkMidnightRollover()`)**:
-  - **Simultaneous 5-Lock Auto-Reset**: At 12:00 AM Midnight, all 5 daily locks & tracker states auto-reset simultaneously:
-    1. **Target Goal**: Recalculates new daily goal target sets (`+4` increment, capped at 108).
-    2. **Water Button**: Unlocks the **"💧 +1 Drink Water"** button (`disabled = false`, active style) and resets intake status & live progress bar to `0%`.
-    3. **Pranayama Access**: Resets `pranaFinishedToday = false` and `pranaClosedToday = false`.
-    4. **Diet & Hydration Plan**: Calls `updateDietPlanButtonLockUI()` to refresh button lock states for the new day.
-    5. **Diet Reminders**: Automatically clears one-off `dietOffDate` overrides.
-  - **Startup Verification**: Launches `checkMidnightRollover()` immediately upon app initialization so morning launches instantly start with a fresh, fully unlocked experience!
-- **Lockscreen & Closed-App System Notification Popups**:
-  - Scheduled hydration reminders (10 AM, 12 PM, 3 PM, 5 PM, 8 PM) dispatch system notification popups with inline action buttons (`💧 +1 Bottle Confirmed`, `🥗 View Tracker`).
-  - Tapping the notification or action button on the lockscreen opens/focuses the app, logs the bottle, and speaks motivational TTS speech!
-
-### 🟢 Basic Features:
-- **12 Authentic Poses**:
+- **Progressive Daily Goal Algorithm (`todayGoal()`)**:
+  - **Starting Target**: Day 1 initializes at **4 rounds**.
+  - **Completion Scaling**: Only upon completing today's target does the goal increment by **+4 rounds/day**, capped at **108 rounds max**.
+  - **Incomplete / Skipped Days**: Incomplete or skipped days retain the current target without premature inflation, allowing users to build strength naturally.
+- **Start Button Goal Lock & 12:00 AM Midnight Auto-Unlock (`checkMidnightRollover()`)**:
+  - Upon completing today's target, the main Start button (`#main-btn`) locks (**`🔒 Goal Complete`**).
+  - At **12:00 AM Midnight**, all daily locks auto-reset, recalculating the new goal target and unlocking the Start button for the morning practice session.
+- **12 Authentic Poses with Color-Coded Breath Cues**:
   1. *Pranamasana* (Prayer Pose) — Inhale/Exhale — Anahata Chakra — *Om Mitraya Namah*
   2. *Hastauttanasana* (Raised Arms Pose) — Inhale — Vishuddhi Chakra — *Om Ravaye Namah*
   3. *Padahastasana* (Hand to Foot Pose) — Exhale — Swadhisthana Chakra — *Om Suryaya Namah*
@@ -82,148 +69,112 @@ Suryasarthi 108 is a premium, progressive Surya Namaskara (Sun Salutation), Ayur
   10. *Padahastasana* (Hand to Foot Pose) — Exhale — Swadhisthana Chakra — *Om Savitre Namah*
   11. *Hastauttanasana* (Raised Arms Pose) — Inhale — Vishuddhi Chakra — *Om Arkaya Namah*
   12. *Tadasana / Pranamasana* (Mountain / Prayer) — Exhale — Anahata Chakra — *Om Bhaskaraya Namah*
-
-### 🟡 Intermediate Mechanics:
-- **Starting Goal Scaling**: Day 1 initializes at **4 rounds**, scaling automatically by **+4/day** up to 108 rounds.
-- **Start Button Goal Lock & 12:00 AM Midnight Unlock**:
-  Upon completing today's target, the main Start button (`#main-btn`) locks (**`🔒 Goal Complete`**). Clicking the locked button notifies the user that tomorrow's goal unlocks at **12:00 AM Midnight**.
-- **Custom Pace & Grace**: Adjust pose duration from **2s to 30s** with configurable grace periods.
-- **Break & Recovery Triggers**:
-  - *Break Interval*: Prompted every 12 sets (default configurable).
-  - *Recovery Checkpoint*: Prompted every 400 all-time completed sets.
-
-### 🔴 Advanced Algorithmic Implementation:
+- **Custom Pace & Recovery Triggers**:
+  - Adjust pose duration from **2s to 30s** with configurable grace periods.
+  - Break interval prompted every 12 sets (default configurable).
+  - Recovery checkpoint prompted every 400 all-time completed sets.
 - **SVG Circular Progress Ring**:
   Calculated dynamically using exact circumference math:
-  $$\text{CIRC} = 2 \times \pi \times 98 \approx 615.75$$
-  $$\text{offset} = \text{CIRC} \times \left(1 - \frac{\text{step}}{12}\right)$$
-- **Single-Threaded Speech Queue (`qSpeak`)**: Prevents audio race conditions across fast pace changes by queueing `SpeechSynthesisUtterance` items sequentially.
-- **Screen WakeLock API**: Requests `navigator.wakeLock.request('screen')` during active sessions to prevent display sleep.
+  $$\text{CIRC} = 2 \times \pi \times 98 \approx 615.75, \quad \text{offset} = \text{CIRC} \times \left(1 - \frac{\text{step}}{12}\right)$$
+- **Screen WakeLock API**: Requests `navigator.wakeLock.request('screen')` during active practice sessions to prevent display sleep.
 
 ---
 
-## 📜 Module 2: Bhagavad Gita Shloka & Daily Alarm Engine
+## 📜 Module 2: Bhagavad Gita Shloka & Morning Motivation Engine
 
-Integrates daily spiritual reflection with automated morning wake-up alarms.
-
-### 🟢 Basic Features:
-- **Daily Rotating Shlokas**: Displays authentic Bhagavad Gita verses complete with Sanskrit text and multilingual translations (Hindi, Marathi, English).
-
-### 🟡 Intermediate Mechanics:
-- **Auto-Play Voice Alarm**: Triggering the morning alarm (default 5:00 AM) auto-plays the day's Gita Shloka in voice audio.
-- **Interactive Snooze Engine**:
-  - **5-Minute Snooze**: Reschedules alarm for +5 minutes.
-  - **10-Minute Snooze**: Reschedules alarm for +10 minutes.
-  - *Constraint*: Maximum **2 snoozes** permitted per alarm cycle to preserve discipline.
-
-### 🔴 Advanced Algorithmic Implementation:
-- **Alarm Scheduler (`scheduleAlarm`)**: Computes exact millisecond delta between `Date.now()` and target `alarmHour:alarmMinute`. Schedules `setTimeout` and updates countdown timers dynamically.
-- **Midnight Rollover Handler (`scheduleMidnightRollover`)**: Evaluates date changes at 00:00:00, increments `programDay`, updates goal targets, and refreshes the day's Gita Shloka automatically.
+- **Daily Authentic Shloka Display**: Displays authentic Bhagavad Gita verses complete with Devanagari Sanskrit text, chapter/verse reference (e.g. `श्रीमद्भगवद्गीता २.४७`), and multilingual translations (Hindi, Marathi, English).
+- **Clear Voice Recitation (`speakCurrentGitaQuote()`)**:
+  - Automatically speaks the full Devanagari Sanskrit Shloka and Translation Meaning in clear voice using Indian local speech synthesis (`hi-IN` / `mr-IN` / `en-IN`).
+  - Includes browser gesture audio unlock (`speechSynthesis.resume()`) to prevent silent muting on Android Chrome and iOS Safari.
+- **Manual Launch Control**:
+  - The Gita Shloka screen **remains open comfortably** on the phone screen so the user can read the Sanskrit text and Translation Meaning at their own pace.
+  - Practice session **ONLY starts when the user taps `🧘 Start Surya Namaskara Now`** (`#gita-start-btn`).
 
 ---
 
-## 🥗 Module 3: 7-Day Rotating Ayurvedic Diet & Hydration Engine
+## 🎬 Module 3: Automatic Social Media Reel Generator & WhatsApp Status Engine
 
-Provides verified (4.9+ star rated) professional Ayurvedic meal plans and hydration tracking tuned to daily physical output.
+An automated 9:16 vertical HD video generator (`autoGenerateWorkoutReel()`) that builds 16-second social media reels ready for WhatsApp Status, Instagram Reels, and YouTube Shorts.
 
-### 🟢 Basic Features:
-- **3 Daily Ayurvedic Meals**:
-  - *Pratah-Aahar* (Breakfast · 8:00 AM)
-  - *Madhyanha-Aahar* (Lunch · 1:00 PM - Peak Digestive Agni)
-  - *Ratri-Aahar* (Dinner · 7:30 PM - Light Agni)
+### 🌟 2-Scene Reel Structure:
+- **Scene 1 (0s to 8s — Bhagavad Gita Opening Scene)**:
+  - Header: `☀️ MORNING MOTIVATION · BHAGAVAD GITA 📜`
+  - Shloka Reference (e.g., `श्रीमद्भगवद्गीता २.४७`).
+  - Golden Devanagari Sanskrit Shloka Box (`कर्मण्येवाधिकारस्ते मा फलेषु कदाचन...`).
+  - Full Translation / Meaning Box in Hindi, Marathi, or English using dynamic word-wrapping (`wrapCanvasText()`).
+  - Triggers voice audio recitation of the full Shloka & Meaning at the start of Scene 1.
+  - Smooth 1-second cross-fade into Scene 2 between seconds 7 and 8.
+- **Scene 2 (8s to 16s — Workout Highlights & Achievement Milestones)**:
+  - User name, date, animated solar ring, and Sanskrit mantras (*"ॐ सूर्याय नमः"*).
+  - Highlighted Achievement Banner (*🎯 TODAY'S GOAL COMPLETED!* / *🏆 1000 TOTAL SETS!* / *🔥 7 DAYS STREAK!*).
+  - Stats grid (Today's sets, active streak days, lifetime total sets).
 
-### 🟡 Intermediate Mechanics:
-- **7-Day Rotating Non-Repeating Menu (`AYURVEDIC_DIET_PLAN_7DAYS`)**: Offers 7 distinct daily menus for Breakfast, Lunch, and Dinner so recipes never repeat on consecutive days.
-- **Dual Preference View**: Displays both **🌱 Vegetarian (Sattvic)** and **🍗 Non-Vegetarian** meal options with tab switchers (`Show Both`, `Veg Only`, `Non-Veg Only`).
-- **Water Hydration Tracker**: Interactive `💧 +1 Glass` logger with progress bar based on total sets completed.
-- **Post-Workout Auto-Popup**: Automatically opens `#diet-modal` upon finishing daily targets.
+### 🏆 Automated Triggers & Voice Appreciations:
+- Auto-captures highlighted workout moments:
+  - Goal Completion.
+  - 1000, 2000, 3000+ total set lifetime milestones.
+  - **Continuous 7, 14, 21, and 30-Day Streak Milestones**: Speaks custom voice appreciation (e.g., *"Outstanding dedication! 7 days continuous Surya Namaskara streak completed! Keep glowing!"*).
 
-### 🔴 Advanced Algorithmic Implementation:
-- **Day of Year Menu Indexing**:
-  $$\text{dayOfYear} = \left\lfloor \frac{\text{now} - \text{startOfYear}}{1000 \times 60 \times 60 \times 24} \right\rfloor, \quad \text{dayIdx} = \text{dayOfYear} \pmod 7$$
-- **Dynamic Hydration & Protein Formulas**:
-  $$\text{waterLiters} = 2.5 + \left\lfloor \frac{\text{sets}}{4} \right\rfloor \times 0.05 \quad (\text{Liters})$$
-  $$\text{proteinGrams} = 50 + \left\lfloor \frac{\text{sets}}{4} \right\rfloor \times 1.5 \quad (\text{Grams})$$
-- **Single-Day OFF Auto-Reset Engine (`isDietReminderActiveToday`)**:
-  When a user turns reminders OFF, the app sets `data.dietOffDate = todayKey()`. If `data.dietOffDate !== todayKey()`, the system **automatically resets reminders to ON** the following day!
+### 📤 1-Click WhatsApp Status Sharing & Main Screen Action Button:
+- **`📲 Share Reel to WhatsApp Status`**: Uses Web Share API (`navigator.share({ files: [videoFile] })`) to launch WhatsApp Status creation instantly.
+- **`📥 Save / Download Video`**: Saves the generated `.webm`/`.mp4` video directly to device gallery.
+- **`🎬 Download / Share Workout Reel`** Button (`#btn-open-reel`): Prominently displayed above the footer on the main screen for instant access.
 
----
-
-## 🫁 Module 4: Guided Pranayama & Meditation Engine
-
-Provides a structured 35-minute (35:00 / 2,100 seconds) guided breathwork and meditation routine following physical practice.
-
-### 🟢 Basic Features:
-- **8 Guided Practices**:
-  1. *Dirgha Pranayama* (Three-Part Deep Breathing — 4s Inhale, 4s Hold, 8s Exhale / 1:1:2 classical ratio)
-  2. *Kapalabhati* (Skull-Shining Purification / Shatkarma)
-  3. *Bhastrika* (Bellows Breath)
-  4. *Anulom-Vilom* (Alternate Nostril Balance)
-  5. *Nadi Shodhana* (Classical Channel Purification 1:4:2 Ratio)
-  6. *Ujjayi Pranayama* (Ocean / Psychic Breath)
-  7. *Bhramari* (Humming Bee Breath)
-  8. *Dhyana* (Silent Meditation)
-
-### 🟡 Intermediate Mechanics:
-- **Classical Yoga & Ayurvedic Standards Engine**:
-  Provides an authentic 11-point Classical Yoga & Ayurveda breakdown for every practice based on *Hatha Yoga Pradipika*, *Gheranda Samhita*, and *Shiva Samhita*:
-  1. Step-by-Step Practice Method
-  2. Beginner, Intermediate & Advanced Inhale-Hold-Exhale Ratios
-  3. Recommended Rounds & Duration
-  4. Posture, Mudra & Eye Position
-  5. Best Time & Empty Stomach Requirements
-  6. Physical Health Benefits
-  7. Mental & Emotional Benefits
-  8. Ayurvedic Benefits (Vata, Pitta, Kapha, Agni, Prana)
-  9. Chakra & Nadi Effects
-  10. Precautions, Contraindications & Common Mistakes
-  11. Progression Guidelines (Beginner → Advanced)
-- **Relocated & Lockable UI Button**:
-  The **"📖 Classical Yoga & Ayurvedic Guide"** button is positioned in the middle section right above round information. It unlocks (`🔓`) at the start of each Pranayama type and setup/pause, and locks (`🔒`) during active live round counting.
-- **8-Practice Tab Navigation Bar**:
-  Inside the modal, an interactive horizontal tab selector bar (`[1. Dirgha]`, `[2. Kapalabhati]`, `[3. Bhastrika]`, `[4. Anulom Vilom]`, `[5. Nadi Shodhana]`, `[6. Ujjayi]`, `[7. Bhramari]`, `[8. Dhyana]`) allows switching to inspect and listen to any of the 8 Pranayama practices separately.
-- **Voice Audio Guidance & Round Freeze**:
-  Tapping any practice tab loads the 11-point Classical Yoga & Ayurveda guide and reads it out loud. Background Pranayama rounds automatically freeze (`📖 Guide Speaking — Round Paused`) while the guide voice is speaking and resume when finished or closed.
-- **Pranayama Step Timer Racing Fix Across All 8 Types**:
-  Resolved duplicate callback scheduling and interval racing that caused Kapalabhati, Bhastrika, Anulom Vilom, Nadi Shodhana, Ujjayi, Bhramari, and Meditation to jump steps rapidly. `startStepExecution()` now invokes `clearPranaTimers()` upfront, and `speakPranaInstruction()` clears safety timeouts to guarantee that every single step across all 8 Pranayama types ticks steadily at 1 second per count without premature termination.
-- **Strict Diet & Hydration Visibility Locking**:
-  The **"Today's Ayurvedic Diet & Hydration"** section (`#card-view-diet-plan`) is completely hidden (`display: none`) from the main screen during incomplete practice and initial Pranayama execution. It appears (`display: flex`) strictly when:
-  1. Today's goal AND the 8th/last type of Pranayama are finished (`endPranayama()`), OR
-  2. The user skips/closes the Pranayama session (`closePranayama()`).
-
-### 🔴 Advanced Algorithmic Implementation:
-- **Step Timer State Machine (`startPranaPhase`, `endPranayama`)**: Uses precise interval ticks (`pranaTimer`) to update elapsed phase time (`pranaPhaseElapsedMs`) and total time (`data.totalPranaMs`).
+### 🧹 Automatic 2-Day Reel Data Cleanup Policy (`cleanupOldWorkoutReels()`):
+- To prevent filling local device storage, workout reels older than **2 days** (`> 2 * 24 * 60 * 60 * 1000 ms`) with `savedOrShared !== true` are automatically purged from app data.
+- Explicitly saved or shared reels (`markReelAsSavedOrShared()`) are preserved permanently.
 
 ---
 
-## 🌞 Module 5: Daytime Relationship-Building Notifications
+## 📹 Module 4: 30-Second WhatsApp Status Screen Recording Engine
 
-Schedules periodic, encouraging notifications throughout the daytime to build habit consistency.
+- **Manual Screen & Voice Recorder (`startScreenRecording()`)**:
+  - Captures 30 seconds of short live workout highlights with internal app voice audio.
+  - Uses `navigator.mediaDevices.getDisplayMedia()` + `MediaRecorder` API.
+  - Fits WhatsApp Status 30-second video limit automatically.
+  - Includes modal preview with instant WhatsApp share and download controls.
 
-### 🟢 Basic Features:
-- **3 Scheduled Daytime Intervals**: Morning (8:30 AM), Afternoon (1:30 PM), and Evening (6:30 PM).
+---
 
-### 🟡 Intermediate Mechanics:
-- **Playful & Empathetic Styles**: Tailors messaging based on whether today's target is complete, in progress, or skipped yesterday.
-- **Name-Personalized TTS**: Tapping a notification opens the app and auto-plays voice greeting with the user's name.
+## 🫁 Module 5: Guided Pranayama & Classical Yoga / Ayurvedic Standards Engine
 
-### 🔴 Advanced Algorithmic Implementation:
-- **Browser Notification API Sync**: Requests permission (`Notification.requestPermission`) and triggers system notification alerts (`new Notification(...)`) with custom vibration patterns `[200, 100, 200]`.
+Provides a structured 35-minute guided breathwork and meditation routine following physical practice.
+
+### 🟢 8 Guided Practices:
+1. *Dirgha Pranayama* (Three-Part Deep Breathing — 1:1:2 classical ratio)
+2. *Kapalabhati* (Skull-Shining Purification / Shatkarma)
+3. *Bhastrika* (Bellows Breath)
+4. *Anulom-Vilom* (Alternate Nostril Balance)
+5. *Nadi Shodhana* (Classical Channel Purification 1:4:2 Ratio)
+6. *Ujjayi Pranayama* (Ocean / Psychic Breath)
+7. *Bhramari* (Humming Bee Breath)
+8. *Dhyana* (Silent Meditation)
+
+### 🟡 Classical Yoga & Ayurvedic Standards Engine:
+Provides an authentic 11-point Classical Yoga & Ayurveda breakdown for every practice based on *Hatha Yoga Pradipika*, *Gheranda Samhita*, and *Shiva Samhita*:
+1. Step-by-Step Practice Method
+2. Inhale-Hold-Exhale Ratios (Beginner, Intermediate, Advanced)
+3. Recommended Rounds & Duration
+4. Posture, Mudra & Eye Position
+5. Best Time & Empty Stomach Requirements
+6. Physical Health Benefits
+7. Mental & Emotional Benefits
+8. Ayurvedic Benefits (Vata, Pitta, Kapha, Agni, Prana)
+9. Chakra & Nadi Effects
+10. Precautions, Contraindications & Common Mistakes
+11. Progression Guidelines (Beginner → Advanced)
+
+- **8-Practice Interactive Tab Bar**: Switch between all 8 practices inside `#prana-guide-modal` to inspect and listen to voice guides separately.
+- **Voice Guide Audio & Round Freeze**: Tapping any practice tab speaks the 11-point guide. Round counting automatically freezes while the voice is speaking and resumes when finished.
 
 ---
 
 ## 👑 Module 6: PRO Subscription & Data Preservation Engine
 
-Manages PRO plan feature access while safeguarding active subscriptions during resets.
-
-### 🟢 Basic Features:
-- **Trial & Premium Tracking**: Calculates free trial elapsed days (7-day trial) and displays premium status tags.
-
-### 🟡 Intermediate Mechanics:
-- **Selective Data Reset**: Resets practice counts and history logs without losing active subscription state.
-
-### 🔴 Advanced Algorithmic Implementation:
-- **Subscription State Preservation Algorithm**:
+- **Subscription Hierarchy**: Free 7-Day Trial + Google Play Subscription Plans (1 Month, 3 Month, 6 Month, 12 Month Annual Pass).
+- **Paywall Overlay Hierarchy (`#paywall-ov`)**: Configured with `z-index: 400` to open smoothly over app locks (`z-index: 300`).
+- **Selective Data Reset & Subscription Preservation**:
+  Preserves active subscription status and trial dates during manual practice resets:
   ```javascript
   const preservedSub = {
     isPremium      : data.isPremium || false,
@@ -231,7 +182,7 @@ Manages PRO plan feature access while safeguarding active subscriptions during r
     subDate        : data.subDate || "",
     trialStartDate : data.trialStartDate || ""
   };
-  // Re-inject preservedSub after resetting practice history object
+  // Re-inject preservedSub after clearing history objects
   data.isPremium = preservedSub.isPremium;
   ```
 
@@ -239,17 +190,10 @@ Manages PRO plan feature access while safeguarding active subscriptions during r
 
 ## 📊 Module 7: Analytics, Data Persistence & Offline PWA Architecture
 
-### 🟢 Basic Features:
 - **Stats Dashboard**: Displays Today's Sets, Target Goal, Current Streak, Total All-Time Sets, Today's Calorie Burn, and Total Calorie Burn.
-
-### 🟡 Intermediate Mechanics:
-- **Interactive Chart Views**: Switchable 7-day, 14-day, and 21-day bar charts rendered via native DOM elements.
-
-### 🔴 Advanced Algorithmic Implementation:
 - **Calorie Estimation Formula**:
   $$\text{Calories Burned} = \text{Completed Sets} \times 13.9 \quad (\text{kcal})$$
-- **Cache-First PWA Service Worker (`sw.js`)**:
-  Intercepts `fetch` events, serving cached assets from `surya-v36` cache storage first, ensuring 100% offline functionality.
+- **Cache-First PWA Service Worker (`sw.js`)**: Serves cached static assets from cache storage first, ensuring 100% offline functionality without network access.
 
 ---
 
@@ -257,21 +201,16 @@ Manages PRO plan feature access while safeguarding active subscriptions during r
 
 ### 1. Daily Surya Namaskara Practice Workflow
 1. Launch the app and tap **▶ Start**.
-2. Follow the animated pose card, visual ring countdown, and spoken instructions.
-3. Tap **Pace +** or **Pace -** to adjust pose duration (default: 5 seconds).
-4. Tap **⏸ Pause** to pause practice or **⏹ Reset** to start over.
+2. The **Bhagavad Gita Shloka Modal** opens, reciting today's Sanskrit Shloka & Meaning in full voice.
+3. Read the Shloka and Meaning comfortably at your own pace.
+4. Tap **`🧘 Start Surya Namaskara Now`** to close the Gita modal and begin your workout.
+5. Follow the animated pose ring, visual countdown, and spoken instructions.
 
-### 2. Viewing & Managing Today's Ayurvedic Diet
-1. Tap **"View Plan"** on the home screen banner or open **Settings -> 🥗 View Today's Plan**.
-2. Review your full-day plan (Breakfast, Lunch, Dinner, Water Target).
-3. Filter options using **Show Both**, **🌱 Veg Only**, or **🍗 Non-Veg Only**.
-4. Log water glasses by tapping **💧 +1 Glass**.
-5. Listen to voice recommendations by tapping **🔊 Listen Personalized Voice Advice**.
-
-### 3. Managing Auto-Reminders & Single-Day OFF Feature
-1. Open the **View Plan** modal or **Settings** drawer.
-2. Toggle **Meal Reminders**, **Water Reminders**, or **Auto-Show Diet Card**.
-3. *Note*: Turning reminders OFF applies **for today only**. Tomorrow, reminders automatically reset to **ON**.
+### 2. Creating & Sharing Workout Reels
+1. Complete today's target goal or achieve a streak milestone (7/14/21/30 days).
+2. The app automatically builds a 2-scene 16s vertical Reel (Scene 1: Gita Shloka + Voice; Scene 2: Workout Highlights & Badges).
+3. Tap **`🎬 Download / Share Workout Reel`** on the main screen anytime.
+4. Tap **`📲 Share Reel to WhatsApp Status`** or **`📥 Save / Download Video`**.
 
 ---
 
@@ -284,34 +223,32 @@ interface AppConfig {
   programName: string;          // "SURYA SARATHI - 108"
   dailyIncrease: number;        // Goal increase per day (+4)
   maxSets: number;              // Target cap (108)
-  breakEvery: number;           // Break interval (12)
   poseSeconds: number;          // Pose duration (2-30s)
-  graceSeconds: number;         // Grace duration
   alarmHour: number;            // Alarm hour (0-23)
   alarmMinute: number;          // Alarm minute (0-59)
   quoteLang: string;            // "hi" | "mr" | "en"
   userName: string;             // User's preferred name
-  dietType: string;             // "veg" | "nonveg"
-  dietNotifOn: boolean;         // Global reminder flag
-  autoShowDietPostGoal: boolean;// Auto popup toggle
+  voiceOn: boolean;             // Voice guidance toggle
 }
 
-interface AppData {
-  history: Record<string, { sets: number; timeMs: number; goal: number; pranaMs?: number }>;
-  totalAllTime: number;
-  programDay: number;
-  isPremium: boolean;
-  dietOffDate?: string;         // "YYYY-MM-DD" date when user muted reminders
-  waterLogs?: Record<string, number>;
+interface WorkoutReelInfo {
+  dateStr: string;
+  todaySets: number;
+  streakDays: number;
+  totalSets: number;
+  goalDone: boolean;
+  milestoneTitle?: string;
+  milestoneDesc?: string;
 }
 ```
 
-### Primary Window Exports (`window.*`)
-- `window.showDietModal(mealType)`: Opens full-day diet plan window.
-- `window.closeDietModal()`: Closes diet plan window.
-- `window.switchDietTab(mode)`: Switches meal view filter (`both` | `veg` | `nonveg`).
-- `window.toggleModalReminder(type)`: Toggles reminder switches inside modal.
-- `window.logWaterGlass()`: Increments today's water glass log count.
+### Primary Window Functions (`window.*`)
+- `autoGenerateWorkoutReel(info)`: Renders 9:16 2-scene animated canvas Reel.
+- `shareReelToSocialMedia()`: Triggers `navigator.share()` with video file.
+- `downloadReelVideo()`: Downloads generated video blob.
+- `cleanupOldWorkoutReels()`: Purges un-shared reels older than 2 days.
+- `showGitaQuoteModal(fromStartBtn)`: Opens Gita Shloka modal with voice recitation.
+- `startScreenRecording()`: Launches 30-second live screen recorder.
 
 ---
 

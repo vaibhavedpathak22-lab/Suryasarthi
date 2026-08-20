@@ -6363,20 +6363,22 @@ async function autoGenerateWorkoutReel(info) {
     if (recorder) {
       recorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
 
-      recorder.onstop = () => {
+      recorder.onstop = async () => {
         try {
-          generatedReelBlob = new Blob(chunks, { type: selectedMime || 'video/webm' });
-          
-          // Register today's reel in storage tracking (default savedOrShared = false)
-          if (!data.reels) data.reels = {};
-          const tKey = todayKey();
-          if (!data.reels[tKey]) {
-            data.reels[tKey] = { date: tKey, savedOrShared: false, timestamp: Date.now() };
-            saveAll();
+          if (chunks.length > 0) {
+            generatedReelBlob = new Blob(chunks, { type: selectedMime || 'video/webm' });
           }
-          cleanupOldWorkoutReels();
-          showReelSocialModal(info);
         } catch(e){}
+        
+        // Register today's reel in storage tracking (default savedOrShared = false)
+        if (!data.reels) data.reels = {};
+        const tKey = todayKey();
+        if (!data.reels[tKey]) {
+          data.reels[tKey] = { date: tKey, savedOrShared: false, timestamp: Date.now() };
+          saveAll();
+        }
+        cleanupOldWorkoutReels();
+        showReelSocialModal(info);
         resetGeneratorState();
       };
 
@@ -6693,7 +6695,14 @@ async function autoGenerateWorkoutReel(info) {
         if (hardTimeout) { clearTimeout(hardTimeout); hardTimeout = null; }
         setStatus("✨ Reel Video Ready!");
 
-        const finishReelAndOpenModal = () => {
+        const finishReelAndOpenModal = async () => {
+          if (!generatedReelBlob) {
+            try {
+              const dataUrl = canvas.toDataURL("image/png");
+              const res = await fetch(dataUrl);
+              generatedReelBlob = await res.blob();
+            } catch(e){}
+          }
           if (!data.reels) data.reels = {};
           const tKey = todayKey();
           if (!data.reels[tKey]) {
@@ -6707,7 +6716,7 @@ async function autoGenerateWorkoutReel(info) {
 
         if (recorder && recorder.state !== 'inactive') {
           let stopFired = false;
-          recorder.onstop = () => {
+          recorder.onstop = async () => {
             if (stopFired) return;
             stopFired = true;
             try {
@@ -6715,45 +6724,20 @@ async function autoGenerateWorkoutReel(info) {
                 generatedReelBlob = new Blob(chunks, { type: selectedMime || 'video/webm' });
               }
             } catch(e){}
-            if (!generatedReelBlob) {
-              try {
-                canvas.toBlob(blob => {
-                  if (blob) generatedReelBlob = blob;
-                  finishReelAndOpenModal();
-                }, "image/png");
-                return;
-              } catch(e){}
-            }
-            finishReelAndOpenModal();
+            await finishReelAndOpenModal();
           };
 
           try { recorder.stop(); } catch(e){ finishReelAndOpenModal(); }
 
-          setTimeout(() => {
+          setTimeout(async () => {
             if (!stopFired) {
               stopFired = true;
-              if (!generatedReelBlob) {
-                try {
-                  canvas.toBlob(blob => {
-                    if (blob) generatedReelBlob = blob;
-                    finishReelAndOpenModal();
-                  }, "image/png");
-                  return;
-                } catch(e){}
-              }
-              finishReelAndOpenModal();
+              await finishReelAndOpenModal();
             }
-          }, 1200);
+          }, 1000);
 
         } else {
-          try {
-            canvas.toBlob(blob => {
-              if (blob) generatedReelBlob = blob;
-              finishReelAndOpenModal();
-            }, "image/png");
-          } catch(e) {
-            finishReelAndOpenModal();
-          }
+          finishReelAndOpenModal();
         }
       }
     }, 1000 / 30);

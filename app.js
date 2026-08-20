@@ -2311,7 +2311,6 @@ function closeSettings() {
   const qlEl = document.getElementById("cfg-quote-lang"); if(qlEl) cfg.quoteLang = qlEl.value;
   voiceMuted      = !cfg.voiceOn;
   scheduleAlarm();   // reschedule with new time
-  scheduleAyurvedicDietNotifications(); // reschedule diet notifications
   cfg.chartDays = parseInt(document.getElementById("cfg-chart-days").value) || 21;
   cfg.chartMode = document.getElementById("cfg-chart-mode").value || "bar";
   saveAll(); render();
@@ -3078,19 +3077,15 @@ async function testLockscreenNotification() {
   }
 
   const name = cfg.userName || "Vaibhav";
-  const success = await sendSystemNotification(`💧 Water Hydration Lock-Screen Test · ${name}`, {
-    body: `💧 Lock-Screen Notification Active! Time to drink 1 glass/bottle of water. Tap to log water now!`,
-    tag: "surya-water-test",
-    vibrate: [300, 100, 300, 100, 300],
-    data: { type: "water" },
-    actions: [
-      { action: "log_water", title: "💧 +1 Water Confirmed" },
-      { action: "view_diet", title: "🥗 View Tracker" }
-    ]
+  const success = await sendSystemNotification(`☀️ System Notification Test · ${name}`, {
+    body: `☀️ Lock-Screen Notifications Active! Your workout and daily alarm reminders will appear here.`,
+    tag: "surya-test-notif",
+    vibrate: [300, 100, 300],
+    data: { type: "test" }
   });
 
   if (success) {
-    alert("✓ Test Notification Sent! Lock your phone screen now to test lock-screen water reminders!");
+    alert("✓ Test Notification Sent! Lock your phone screen now to test lock-screen reminders!");
   } else {
     alert("⚠️ Could not send notification. Please check browser Notification permissions in Android Settings.");
   }
@@ -4687,14 +4682,13 @@ function toggleModalReminder(type) {
   if (type === "diet" || type === "water") {
     const activeNow = isDietReminderActiveToday();
     const nextState = !activeNow;
-    cfg.dietNotifOn = nextState;
-    if (!nextState) {
-      data.dietOffDate = today; // Turning OFF applies ONLY for today!
-    } else {
-      delete data.dietOffDate;
-    }
-    togSet("tog-modal-diet-notif", nextState);
-    togSet("tog-modal-water-notif", nextState);
+  if (type === "diet") {
+    cfg.dietNotifOn = false;
+    togSet("tog-modal-diet-notif", false);
+    togSet("tog-modal-water-notif", false);
+  } else if (type === "water") {
+    cfg.waterNotifOn = false;
+    togSet("tog-modal-water-notif", false);
   } else if (type === "postgoal") {
     cfg.autoShowDietPostGoal = !togGet("tog-modal-postgoal-notif");
     togSet("tog-modal-postgoal-notif", cfg.autoShowDietPostGoal);
@@ -4868,124 +4862,29 @@ function speakCurrentDietNotification(planObj) {
 }
 
 function triggerAyurvedicDietNotification(mealType) {
-  if (!isDietReminderActiveToday()) return;
-  const plan = getDietPlanForCurrentState(mealType);
-
-  // 1. Show System Notification
-  if ("Notification" in window && Notification.permission === "granted") {
-    try {
-      const n = new Notification("🥗 Ayurvedic Diet & Hydration · " + plan.name, {
-        body: plan.title + "\nWater Target: " + plan.metrics.waterLiters + "L | Protein: " + plan.metrics.proteinGrams + "g",
-        icon: "./icon-192.png",
-        badge: "./icon-192.png",
-        tag: "surya-diet-notif",
-        renotify: true,
-        vibrate: [200, 100, 200]
-      });
-      n.onclick = () => {
-        try { window.focus(); } catch (e) {}
-        showDietModal(mealType);
-        n.close();
-      };
-    } catch (e) { console.warn("Notification error:", e); }
-  }
-
-  // 2. If app is visible, pop diet modal and autoplay voice
-  if (document.visibilityState === "visible") {
-    showDietModal(mealType);
-  }
+  // Completely stopped Ayurvedic diet notifications as per user instruction
+  return;
 }
 
 let _dietNotifTimer = null;
 
 function scheduleAyurvedicDietNotifications() {
   if (_dietNotifTimer) { clearInterval(_dietNotifTimer); _dietNotifTimer = null; }
-  if (cfg.dietNotifOn === false) return;
-
-  let lastTriggeredHour = -1;
-
-  _dietNotifTimer = setInterval(() => {
-    const now = new Date();
-    const h = now.getHours();
-    const m = now.getMinutes();
-
-    if (h === lastTriggeredHour) return;
-
-    if (h === 8 && m >= 0 && m <= 15) {
-      lastTriggeredHour = h;
-      triggerAyurvedicDietNotification("breakfast");
-    } else if (h === 13 && m >= 0 && m <= 15) {
-      lastTriggeredHour = h;
-      triggerAyurvedicDietNotification("lunch");
-    } else if (h === 19 && m >= 30 && m <= 45) {
-      lastTriggeredHour = h;
-      triggerAyurvedicDietNotification("dinner");
-    }
-  }, 60000);
+  // Completely stopped Ayurvedic diet notifications as per user instruction
+  return;
 }
 
 let _waterNotifTimer = null;
 
 function scheduleWaterIntakeReminders() {
   if (_waterNotifTimer) { clearInterval(_waterNotifTimer); _waterNotifTimer = null; }
-  if (cfg.dietNotifOn === false) return;
-
-  let lastTriggeredHour = -1;
-
-  _waterNotifTimer = setInterval(() => {
-    const now = new Date();
-    const h = now.getHours();
-    const m = now.getMinutes();
-
-    if (h === lastTriggeredHour) return;
-
-    // 2-Hourly daytime water sip reminders (10 AM, 12 PM, 3 PM, 5 PM, 8 PM)
-    if ([10, 12, 15, 17, 20].includes(h) && m >= 0 && m <= 15) {
-      lastTriggeredHour = h;
-      triggerWaterHydrationNotification();
-    }
-  }, 60000);
+  // Completely stopped water intake reminders as per user instruction
+  return;
 }
 
 function triggerWaterHydrationNotification() {
-  if (cfg.dietNotifOn === false) return;
-  const metrics = calcAyurvedicHydrationAndProtein();
-  const logged = getWaterLoggedToday();
-  const target = metrics.targetContainers;
-  const unitName = metrics.bottleMl >= 1000 ? "bottle" : "glass";
-  const unitPlural = metrics.bottleMl >= 1000 ? "bottles" : "glasses";
-  const name = cfg.userName || "Vaibhav";
-  const lang = cfg.quoteLang || cfg.pranaLang || "hi";
-
-  const msg = lang === "hi"
-    ? `💧 हाइड्रेशन रिमांडर ${name}! अपनी ऊर्जा और स्वास्थ्य के लिए 1 ${unitName} पानी पिएं (${logged}/${target} ${unitPlural} पूर्ण)। दर्ज़ करने के लिए क्लिक करें!`
-    : `💧 Hydration Reminder ${name}! Time to drink 1 ${unitName} of water (${logged}/${target} ${unitPlural} logged). Tap to confirm 1 ${unitName}!`;
-
-  sendSystemNotification(`💧 Water Hydration Check · ${name}`, {
-    body: msg,
-    tag: "surya-water-notif",
-    vibrate: [300, 100, 300, 100, 300],
-    data: { type: "water" },
-    actions: [
-      { action: "log_water", title: "💧 +1 " + (metrics.bottleMl >= 1000 ? "Bottle" : "Glass") + " Confirmed" },
-      { action: "view_diet", title: "🥗 View Tracker" }
-    ],
-    onclick: () => {
-      try { window.focus(); } catch (e) {}
-      quickLogWaterAndSpeak();
-    }
-  });
-
-  // Voice speech if app visible or active
-  if (document.visibilityState === "visible" && !voiceMuted && window.speechSynthesis && typeof SpeechSynthesisUtterance !== "undefined") {
-    qClear();
-    try {
-      const u = new SpeechSynthesisUtterance(msg);
-      u.rate = 0.95;
-      u.lang = lang === "en" ? "en-IN" : "hi-IN";
-      qSpeak(u);
-    } catch (e) {}
-  }
+  // Completely stopped water intake reminders as per user instruction
+  return;
 }
 
 window.showDietModal = showDietModal;
@@ -6134,8 +6033,6 @@ updateClockDisplay();
 scheduleMidnightRollover(); // schedule goal unlock at 12:00 AM Midnight
 scheduleAlarm();            // schedule 5 AM alarm
 checkMorningGreeting();     // greet if user opens app near alarm time
-scheduleAyurvedicDietNotifications(); // schedule Ayurvedic diet notifications
-scheduleWaterIntakeReminders(); // schedule 2-hourly water hydration reminders
 checkSubscriptionReminder();
 checkAppLockState();
 

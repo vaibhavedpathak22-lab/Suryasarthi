@@ -958,16 +958,18 @@ function finishSession(goalDone) {
     const msg = "Namaste " + name + "! Today's target of " + todaySets + " rounds complete and locked." + streakMsg;
     setTimeout(()=>speakText(msg), 800);
 
-    // Auto-Generate Social Media Reel on Goal Completion / Streak Milestone
-    setTimeout(() => {
-      autoGenerateWorkoutReel({
-        type: isStreakMilestone ? "streak_milestone" : "goal_complete",
-        todaySets: todaySets,
-        totalSets: totalSets,
-        streakDays: streak,
-        name: name
-      });
-    }, 2000);
+    // Auto-Generate Social Media Reel on Goal Completion / Streak Milestone (if enabled in settings)
+    if (cfg.autoReelOn !== false) {
+      setTimeout(() => {
+        autoGenerateWorkoutReel({
+          type: isStreakMilestone ? "streak_milestone" : "goal_complete",
+          todaySets: todaySets,
+          totalSets: totalSets,
+          streakDays: streak,
+          name: name
+        });
+      }, 2000);
+    }
 
     if(cfg.pranayamaAuto !== false) {
       setTimeout(()=>startPranaRestTransition(60), 3000);
@@ -2265,6 +2267,7 @@ function openSettings() {
   document.getElementById("cfg-prana-lang").value = cfg.pranaLang || "en";
   togSet("tog-alarm", cfg.alarmOn !== false);
   togSet("tog-daytime-notif", cfg.daytimeNotifOn !== false);
+  togSet("tog-auto-reel", cfg.autoReelOn !== false);
   const unEl = document.getElementById("cfg-user-name"); if(unEl) unEl.value = cfg.userName || "Vaibhav";
   const uwEl = document.getElementById("cfg-user-weight"); if(uwEl) uwEl.value = cfg.userWeight || 66;
   const bsEl = document.getElementById("cfg-bottle-size"); if(bsEl) bsEl.value = cfg.bottleMl || 1000;
@@ -2296,6 +2299,7 @@ function closeSettings() {
   cfg.pranaLang        = document.getElementById("cfg-prana-lang").value || "en";
   cfg.alarmOn          = togGet("tog-alarm");
   cfg.daytimeNotifOn   = togGet("tog-daytime-notif");
+  cfg.autoReelOn       = togGet("tog-auto-reel");
   const unEl2 = document.getElementById("cfg-user-name"); if(unEl2) cfg.userName = unEl2.value.trim() || "Vaibhav";
   const uwEl2 = document.getElementById("cfg-user-weight"); if(uwEl2) cfg.userWeight = Math.max(30, Math.min(250, parseInt(uwEl2.value) || 66));
   const bsEl2 = document.getElementById("cfg-bottle-size"); if(bsEl2) cfg.bottleMl = parseInt(bsEl2.value) || 1000;
@@ -2315,7 +2319,7 @@ function closeSettings() {
 }
 const togSet=(id,on)=>{ const el=document.getElementById(id); if(el) el.classList.toggle("on",on); };
 const togGet=id=>{ const el=document.getElementById(id); return el ? el.classList.contains("on") : false; };
-["tog-voice","tog-mantras","tog-breath","tog-auto","tog-prana","tog-alarm","tog-daytime-notif"].forEach(id=>{
+["tog-voice","tog-mantras","tog-breath","tog-auto","tog-prana","tog-alarm","tog-daytime-notif","tog-auto-reel"].forEach(id=>{
   const el = document.getElementById(id);
   if(el) el.addEventListener("click",function(){this.classList.toggle("on");});
 });
@@ -6371,6 +6375,11 @@ async function autoGenerateWorkoutReel(info) {
     recorder.onstop = () => {
       generatedReelBlob = new Blob(chunks, { type: selectedMime || 'video/webm' });
       
+      const btn = document.getElementById("btn-open-reel");
+      if (btn) {
+        btn.innerHTML = `🎬 Download / Share Workout Reel <span style="font-size:11px;background:#25D366;color:#111B21;padding:2px 7px;border-radius:10px;font-weight:900">HD Reel</span>`;
+      }
+
       // Register today's reel in storage tracking (default savedOrShared = false)
       if (!data.reels) data.reels = {};
       const tKey = todayKey();
@@ -6401,6 +6410,11 @@ async function autoGenerateWorkoutReel(info) {
         const pct = Math.floor((frame / maxFrames) * 100);
         const secsLeft = Math.ceil((maxFrames - frame) / 30);
         setStatus(`🎬 Generating HD Reel Video... ${pct}% (${secsLeft}s remaining)`);
+
+        const btn = document.getElementById("btn-open-reel");
+        if (btn) {
+          btn.innerHTML = `🎬 Generating Reel... ${pct}% (${secsLeft}s) <span style="font-size:11px;background:#25D366;color:#111B21;padding:2px 7px;border-radius:10px;font-weight:900">${pct}%</span>`;
+        }
       }
 
       // ═════════════════════════════════════════════════════════════
@@ -6738,6 +6752,9 @@ async function shareReelToSocialMedia() {
   if (!generatedReelBlob) return;
   markReelAsSavedOrShared();
 
+  const shareBtn = document.getElementById("btn-share-reel");
+  if (shareBtn) shareBtn.innerHTML = "📲 Preparing WhatsApp Share... 100% ✓";
+
   const ext = generatedReelBlob.type.includes("mp4") ? "mp4" : "webm";
   const file = new File([generatedReelBlob], `surya_namaskara_reel.${ext}`, { type: generatedReelBlob.type });
 
@@ -6748,6 +6765,7 @@ async function shareReelToSocialMedia() {
         title: "My Surya Namaskara Workout Reel",
         text: "Completed my Surya Namaskara session! ☀️🧘 #SuryaNamaskara #SuryaSarathi108"
       });
+      if (shareBtn) shareBtn.innerHTML = "📲 Share Reel to WhatsApp Status";
       return;
     } catch (e) {
       if (e.name !== 'AbortError') console.error("Share failed:", e);
@@ -6755,12 +6773,16 @@ async function shareReelToSocialMedia() {
   }
   
   downloadReelVideo();
+  if (shareBtn) shareBtn.innerHTML = "📲 Share Reel to WhatsApp Status";
   alert("Reel video downloaded! You can now upload it directly to your WhatsApp Status or Instagram Stories.");
 }
 
 function downloadReelVideo() {
   if (!generatedReelBlob) return;
   markReelAsSavedOrShared();
+
+  const dlBtn = document.getElementById("btn-download-reel");
+  if (dlBtn) dlBtn.innerHTML = "📥 Saved to Gallery! 100% ✓";
 
   const ext = generatedReelBlob.type.includes("mp4") ? "mp4" : "webm";
   const url = URL.createObjectURL(generatedReelBlob);
@@ -6770,6 +6792,10 @@ function downloadReelVideo() {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+
+  setTimeout(() => {
+    if (dlBtn) dlBtn.innerHTML = "📥 Save Reel to Gallery / Device";
+  }, 2500);
 }
 
 /* ── Automatic Reel Data Storage Cleanup (Retain Last 2 Days Only) ── */

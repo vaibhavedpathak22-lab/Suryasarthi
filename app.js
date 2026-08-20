@@ -6323,8 +6323,39 @@ window.downloadStatusVideo = downloadStatusVideo;
    Auto-Captures Goal Complete & 1000/2000/3000 Milestone Achievements!
    ═══════════════════════════════════════════════════════════════ */
 let generatedReelBlob = null;
+let isGeneratingReel = false;
 
 async function autoGenerateWorkoutReel(info) {
+  if (isGeneratingReel) {
+    console.log("[Reel Generator] Already generating reel, skipping concurrent run.");
+    return;
+  }
+  isGeneratingReel = true;
+
+  const btn = document.getElementById("btn-open-reel");
+  if (btn) {
+    btn.innerHTML = `🎬 Generating Reel... 0% (15s) <span style="font-size:11px;background:#25D366;color:#111B21;padding:2px 7px;border-radius:10px;font-weight:900">0%</span>`;
+  }
+
+  let animInterval = null;
+  let hardTimeout = null;
+
+  const resetGeneratorState = () => {
+    isGeneratingReel = false;
+    if (animInterval) { clearInterval(animInterval); animInterval = null; }
+    if (hardTimeout) { clearTimeout(hardTimeout); hardTimeout = null; }
+    const b = document.getElementById("btn-open-reel");
+    if (b) {
+      b.innerHTML = `🎬 Download / Share Workout Reel <span style="font-size:11px;background:#25D366;color:#111B21;padding:2px 7px;border-radius:10px;font-weight:900">HD Reel</span>`;
+    }
+  };
+
+  // Hard timeout safety (18s max) to guarantee generator never gets stuck looping
+  hardTimeout = setTimeout(() => {
+    console.warn("[Reel Generator] Hard safety timeout (18s) reached. Resetting recorder...");
+    resetGeneratorState();
+  }, 18000);
+
   try {
     const canvas = document.createElement("canvas");
     canvas.width = 720;
@@ -6337,7 +6368,7 @@ async function autoGenerateWorkoutReel(info) {
     const type = info?.type || "goal_complete";
     const streak = computeStreak();
 
-    // Web Audio Context for background chime + voice synthesis
+    // Web Audio Context for background chime
     let audioCtx = null;
     try {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -6345,53 +6376,64 @@ async function autoGenerateWorkoutReel(info) {
 
     const dest = audioCtx ? audioCtx.createMediaStreamDestination() : null;
 
-    // Play Solfeggio 528Hz bell chime into destination stream
     if (audioCtx && dest) {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(528, audioCtx.currentTime);
-      gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 4.0);
-      osc.connect(gain);
-      gain.connect(dest);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 4.0);
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(528, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3.0);
+        osc.connect(gain);
+        gain.connect(dest);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 3.0);
+      } catch(e){}
     }
 
-    const stream = canvas.captureStream(30); // 30 FPS
-    if (dest && dest.stream.getAudioTracks().length > 0) {
-      stream.addTrack(dest.stream.getAudioTracks()[0]);
+    let stream = null;
+    try {
+      stream = canvas.captureStream ? canvas.captureStream(30) : null;
+    } catch(e){ stream = null; }
+
+    if (stream && dest && dest.stream.getAudioTracks().length > 0) {
+      try { stream.addTrack(dest.stream.getAudioTracks()[0]); } catch(e){}
     }
 
     const mimeTypes = ['video/webm;codecs=vp9,opus', 'video/webm', 'video/mp4'];
     let selectedMime = mimeTypes.find(m => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) || '';
 
-    const recorder = new MediaRecorder(stream, selectedMime ? { mimeType: selectedMime } : {});
+    let recorder = null;
+    if (stream && typeof MediaRecorder !== "undefined") {
+      try {
+        recorder = new MediaRecorder(stream, selectedMime ? { mimeType: selectedMime } : {});
+      } catch(e){ recorder = null; }
+    }
+
     const chunks = [];
 
-    recorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+    if (recorder) {
+      recorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
 
-    recorder.onstop = () => {
-      generatedReelBlob = new Blob(chunks, { type: selectedMime || 'video/webm' });
-      
-      const btn = document.getElementById("btn-open-reel");
-      if (btn) {
-        btn.innerHTML = `🎬 Download / Share Workout Reel <span style="font-size:11px;background:#25D366;color:#111B21;padding:2px 7px;border-radius:10px;font-weight:900">HD Reel</span>`;
-      }
+      recorder.onstop = () => {
+        try {
+          generatedReelBlob = new Blob(chunks, { type: selectedMime || 'video/webm' });
+          
+          // Register today's reel in storage tracking (default savedOrShared = false)
+          if (!data.reels) data.reels = {};
+          const tKey = todayKey();
+          if (!data.reels[tKey]) {
+            data.reels[tKey] = { date: tKey, savedOrShared: false, timestamp: Date.now() };
+            saveAll();
+          }
+          cleanupOldWorkoutReels();
+          showReelSocialModal(info);
+        } catch(e){}
+        resetGeneratorState();
+      };
 
-      // Register today's reel in storage tracking (default savedOrShared = false)
-      if (!data.reels) data.reels = {};
-      const tKey = todayKey();
-      if (!data.reels[tKey]) {
-        data.reels[tKey] = { date: tKey, savedOrShared: false, timestamp: Date.now() };
-        saveAll();
-      }
-      cleanupOldWorkoutReels();
-      showReelSocialModal(info);
-    };
-
-    recorder.start(1000);
+      try { recorder.start(1000); } catch(e){}
+    }
 
     // Render 9:16 Animated Canvas Reel (15 seconds total: 5s Gita Opening + 10s Workout Highlights)
     let frame = 0;
@@ -6403,7 +6445,7 @@ async function autoGenerateWorkoutReel(info) {
     const gQuote = typeof getDailyGitaQuote === "function" ? getDailyGitaQuote() : { ref: "श्रीमद्भगवद्गीता २.४७", shloka: "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि॥", hi: "तुम्हारा अधिकार केवल कर्म करने में है, उसके फलों में कभी नहीं।" };
     const gMeaning = typeof getQuoteMeaning === "function" ? getQuoteMeaning(gQuote) : (gQuote.hi || gQuote.en || "");
 
-    const animInterval = setInterval(() => {
+    animInterval = setInterval(() => {
       frame++;
 
       if (frame % 15 === 0) {
@@ -6411,9 +6453,9 @@ async function autoGenerateWorkoutReel(info) {
         const secsLeft = Math.ceil((maxFrames - frame) / 30);
         setStatus(`🎬 Generating HD Reel Video... ${pct}% (${secsLeft}s remaining)`);
 
-        const btn = document.getElementById("btn-open-reel");
-        if (btn) {
-          btn.innerHTML = `🎬 Generating Reel... ${pct}% (${secsLeft}s) <span style="font-size:11px;background:#25D366;color:#111B21;padding:2px 7px;border-radius:10px;font-weight:900">${pct}%</span>`;
+        const b = document.getElementById("btn-open-reel");
+        if (b) {
+          b.innerHTML = `🎬 Generating Reel... ${pct}% (${secsLeft}s) <span style="font-size:11px;background:#25D366;color:#111B21;padding:2px 7px;border-radius:10px;font-weight:900">${pct}%</span>`;
         }
       }
 
@@ -6702,16 +6744,30 @@ async function autoGenerateWorkoutReel(info) {
       ctx.fillText("Track your 108 Surya Namaskara with Suryasarthi App", 360, 1080);
 
       if (frame >= maxFrames) {
-        clearInterval(animInterval);
+        if (animInterval) { clearInterval(animInterval); animInterval = null; }
         setStatus("✨ Reel Video Ready!");
         if (recorder && recorder.state !== 'inactive') {
-          recorder.stop();
+          try { recorder.stop(); } catch(e){}
+        } else {
+          // Fallback for devices without MediaRecorder stream support: export static canvas blob
+          try {
+            canvas.toBlob(blob => {
+              if (blob) {
+                generatedReelBlob = blob;
+                showReelSocialModal(info);
+              }
+              resetGeneratorState();
+            }, "image/png");
+          } catch(e) {
+            resetGeneratorState();
+          }
         }
       }
     }, 1000 / 30);
 
   } catch (err) {
     console.error("Auto Reel generation error:", err);
+    resetGeneratorState();
   }
 }
 

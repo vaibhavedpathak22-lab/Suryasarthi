@@ -6334,7 +6334,7 @@ async function autoGenerateWorkoutReel(info) {
 
   const btn = document.getElementById("btn-open-reel");
   if (btn) {
-    btn.innerHTML = `🎬 Generating Reel... 0% (15s) <span style="font-size:11px;background:#25D366;color:#111B21;padding:2px 7px;border-radius:10px;font-weight:900">0%</span>`;
+    btn.innerHTML = `🎬 Generating Workout Reel <span style="font-size:11px;background:#25D366;color:#111B21;padding:2px 7px;border-radius:10px;font-weight:900">0%</span>`;
   }
 
   let animInterval = null;
@@ -6350,11 +6350,11 @@ async function autoGenerateWorkoutReel(info) {
     }
   };
 
-  // Hard timeout safety (18s max) to guarantee generator never gets stuck looping
+  // Hard timeout safety (60s max) to guarantee generator never gets stuck looping
   hardTimeout = setTimeout(() => {
-    console.warn("[Reel Generator] Hard safety timeout (18s) reached. Resetting recorder...");
+    console.warn("[Reel Generator] Hard safety timeout (60s) reached. Resetting recorder...");
     resetGeneratorState();
-  }, 18000);
+  }, 60000);
 
   try {
     const canvas = document.createElement("canvas");
@@ -6450,12 +6450,9 @@ async function autoGenerateWorkoutReel(info) {
 
       if (frame % 15 === 0) {
         const pct = Math.floor((frame / maxFrames) * 100);
-        const secsLeft = Math.ceil((maxFrames - frame) / 30);
-        setStatus(`🎬 Generating HD Reel Video... ${pct}% (${secsLeft}s remaining)`);
-
         const b = document.getElementById("btn-open-reel");
         if (b) {
-          b.innerHTML = `🎬 Generating Reel... ${pct}% (${secsLeft}s) <span style="font-size:11px;background:#25D366;color:#111B21;padding:2px 7px;border-radius:10px;font-weight:900">${pct}%</span>`;
+          b.innerHTML = `🎬 Generating Workout Reel <span style="font-size:11px;background:#25D366;color:#111B21;padding:2px 7px;border-radius:10px;font-weight:900">${pct}%</span>`;
         }
       }
 
@@ -6745,21 +6742,69 @@ async function autoGenerateWorkoutReel(info) {
 
       if (frame >= maxFrames) {
         if (animInterval) { clearInterval(animInterval); animInterval = null; }
+        if (hardTimeout) { clearTimeout(hardTimeout); hardTimeout = null; }
         setStatus("✨ Reel Video Ready!");
+
+        const finishReelAndOpenModal = () => {
+          if (!data.reels) data.reels = {};
+          const tKey = todayKey();
+          if (!data.reels[tKey]) {
+            data.reels[tKey] = { date: tKey, savedOrShared: false, timestamp: Date.now() };
+            saveAll();
+          }
+          cleanupOldWorkoutReels();
+          showReelSocialModal(info);
+          resetGeneratorState();
+        };
+
         if (recorder && recorder.state !== 'inactive') {
-          try { recorder.stop(); } catch(e){}
+          let stopFired = false;
+          recorder.onstop = () => {
+            if (stopFired) return;
+            stopFired = true;
+            try {
+              if (chunks.length > 0) {
+                generatedReelBlob = new Blob(chunks, { type: selectedMime || 'video/webm' });
+              }
+            } catch(e){}
+            if (!generatedReelBlob) {
+              try {
+                canvas.toBlob(blob => {
+                  if (blob) generatedReelBlob = blob;
+                  finishReelAndOpenModal();
+                }, "image/png");
+                return;
+              } catch(e){}
+            }
+            finishReelAndOpenModal();
+          };
+
+          try { recorder.stop(); } catch(e){ finishReelAndOpenModal(); }
+
+          setTimeout(() => {
+            if (!stopFired) {
+              stopFired = true;
+              if (!generatedReelBlob) {
+                try {
+                  canvas.toBlob(blob => {
+                    if (blob) generatedReelBlob = blob;
+                    finishReelAndOpenModal();
+                  }, "image/png");
+                  return;
+                } catch(e){}
+              }
+              finishReelAndOpenModal();
+            }
+          }, 1200);
+
         } else {
-          // Fallback for devices without MediaRecorder stream support: export static canvas blob
           try {
             canvas.toBlob(blob => {
-              if (blob) {
-                generatedReelBlob = blob;
-                showReelSocialModal(info);
-              }
-              resetGeneratorState();
+              if (blob) generatedReelBlob = blob;
+              finishReelAndOpenModal();
             }, "image/png");
           } catch(e) {
-            resetGeneratorState();
+            finishReelAndOpenModal();
           }
         }
       }
@@ -6771,25 +6816,64 @@ async function autoGenerateWorkoutReel(info) {
   }
 }
 
+function showReelConfirmModal(info) {
+  showReelSocialModal(info);
+}
+
+function closeReelConfirmModal() {
+  const modal = document.getElementById("reel-confirm-modal");
+  if (modal) {
+    modal.style.display = "none";
+    modal.classList.remove("show");
+  }
+}
+
+function confirmOpenReelPreview() {
+  closeReelConfirmModal();
+  showReelSocialModal({
+    type: "goal_complete",
+    todaySets: todayDone(),
+    totalSets: data.totalAllTime,
+    name: cfg.userName || "Vaibhav"
+  });
+}
+
+function confirmDownloadReelDirect() {
+  closeReelConfirmModal();
+  downloadReelVideo();
+}
+
 function showReelSocialModal(info) {
   if (!generatedReelBlob) return;
+
   const vid = document.getElementById("reel-video-preview");
-  if (vid) {
-    vid.src = URL.createObjectURL(generatedReelBlob);
+  const img = document.getElementById("reel-image-preview");
+  const isImage = generatedReelBlob.type.startsWith("image/");
+  const blobUrl = URL.createObjectURL(generatedReelBlob);
+
+  if (isImage) {
+    if (vid) { vid.style.display = "none"; try { vid.pause(); vid.src = ""; } catch(e){} }
+    if (img) { img.style.display = "block"; img.src = blobUrl; }
+  } else {
+    if (img) { img.style.display = "none"; img.src = ""; }
+    if (vid) { vid.style.display = "block"; vid.src = blobUrl; try { vid.play().catch(e=>{}); } catch(e){} }
   }
+
   const subLbl = document.getElementById("reel-modal-subtitle");
   if (subLbl && info) {
+    const setsDone = info.todaySets || todayDone();
     if (info.type === "streak_milestone") {
       subLbl.textContent = `🔥 Continuous Streak Reel: ${info.streakDays || computeStreak()} Days Continuous Workout Mastered!`;
     } else if (info.type === "lifetime_milestone") {
       subLbl.textContent = `🏆 Milestone Reel: ${info.totalSets} Total Lifetime Sets Mastered!`;
     } else {
-      subLbl.textContent = `🎯 Goal Complete Reel: ${info.todaySets} / ${info.todaySets} Rounds Mastered Today!`;
+      subLbl.textContent = `🎯 Goal Complete Reel: ${setsDone} Rounds Mastered Today!`;
     }
   }
+
   const modal = document.getElementById("reel-social-modal");
   if (modal) {
-    modal.style.display = "flex";
+    modal.style.cssText = "display:flex !important; position:fixed !important; inset:0 !important; z-index:999999 !important; background:rgba(7,11,20,0.95) !important; backdrop-filter:blur(16px) !important; align-items:center !important; justify-content:center !important;";
     modal.classList.add("show");
   }
 }
@@ -6801,7 +6885,9 @@ function closeReelSocialModal() {
     modal.classList.remove("show");
   }
   const vid = document.getElementById("reel-video-preview");
-  if (vid) { vid.pause(); vid.src = ""; }
+  if (vid) { try { vid.pause(); vid.src = ""; } catch(e){} }
+  const img = document.getElementById("reel-image-preview");
+  if (img) { img.style.display = "none"; img.src = ""; }
 }
 
 async function shareReelToSocialMedia() {
@@ -6811,8 +6897,10 @@ async function shareReelToSocialMedia() {
   const shareBtn = document.getElementById("btn-share-reel");
   if (shareBtn) shareBtn.innerHTML = "📲 Preparing WhatsApp Share... 100% ✓";
 
-  const ext = generatedReelBlob.type.includes("mp4") ? "mp4" : "webm";
-  const file = new File([generatedReelBlob], `surya_namaskara_reel.${ext}`, { type: generatedReelBlob.type });
+  const isImg = generatedReelBlob.type.startsWith("image/");
+  const ext = isImg ? "png" : (generatedReelBlob.type.includes("mp4") ? "mp4" : "webm");
+  const fileName = `SuryaNamaskara_Workout_Reel_${Date.now()}.${ext}`;
+  const file = new File([generatedReelBlob], fileName, { type: generatedReelBlob.type });
 
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
@@ -6830,7 +6918,6 @@ async function shareReelToSocialMedia() {
   
   downloadReelVideo();
   if (shareBtn) shareBtn.innerHTML = "📲 Share Reel to WhatsApp Status";
-  alert("Reel video downloaded! You can now upload it directly to your WhatsApp Status or Instagram Stories.");
 }
 
 function downloadReelVideo() {
@@ -6840,7 +6927,8 @@ function downloadReelVideo() {
   const dlBtn = document.getElementById("btn-download-reel");
   if (dlBtn) dlBtn.innerHTML = "📥 Saved to Gallery! 100% ✓";
 
-  const ext = generatedReelBlob.type.includes("mp4") ? "mp4" : "webm";
+  const isImg = generatedReelBlob.type.startsWith("image/");
+  const ext = isImg ? "png" : (generatedReelBlob.type.includes("mp4") ? "mp4" : "webm");
   const url = URL.createObjectURL(generatedReelBlob);
   const a = document.createElement("a");
   a.href = url;
@@ -6938,6 +7026,10 @@ function handleOpenReelClick() {
 }
 
 window.autoGenerateWorkoutReel = autoGenerateWorkoutReel;
+window.showReelConfirmModal = showReelConfirmModal;
+window.closeReelConfirmModal = closeReelConfirmModal;
+window.confirmOpenReelPreview = confirmOpenReelPreview;
+window.confirmDownloadReelDirect = confirmDownloadReelDirect;
 window.closeReelSocialModal = closeReelSocialModal;
 window.shareReelToSocialMedia = shareReelToSocialMedia;
 window.downloadReelVideo = downloadReelVideo;

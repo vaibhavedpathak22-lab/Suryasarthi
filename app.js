@@ -6397,6 +6397,12 @@ async function autoGenerateWorkoutReel(info) {
     const animInterval = setInterval(() => {
       frame++;
 
+      if (frame % 15 === 0) {
+        const pct = Math.floor((frame / maxFrames) * 100);
+        const secsLeft = Math.ceil((maxFrames - frame) / 30);
+        setStatus(`🎬 Generating HD Reel Video... ${pct}% (${secsLeft}s remaining)`);
+      }
+
       // ═════════════════════════════════════════════════════════════
       // SCENE 1 (Frames 1 to 150 = 0s to 5s): BHAGAVAD GITA OPENING
       // ═════════════════════════════════════════════════════════════
@@ -6683,6 +6689,7 @@ async function autoGenerateWorkoutReel(info) {
 
       if (frame >= maxFrames) {
         clearInterval(animInterval);
+        setStatus("✨ Reel Video Ready!");
         if (recorder && recorder.state !== 'inactive') {
           recorder.stop();
         }

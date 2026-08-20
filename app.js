@@ -2311,6 +2311,7 @@ function closeSettings() {
   const qlEl = document.getElementById("cfg-quote-lang"); if(qlEl) cfg.quoteLang = qlEl.value;
   voiceMuted      = !cfg.voiceOn;
   scheduleAlarm();   // reschedule with new time
+  scheduleAyurvedicDietNotifications(); // reschedule diet notifications
   cfg.chartDays = parseInt(document.getElementById("cfg-chart-days").value) || 21;
   cfg.chartMode = document.getElementById("cfg-chart-mode").value || "bar";
   saveAll(); render();
@@ -4682,9 +4683,13 @@ function toggleModalReminder(type) {
   if (type === "diet" || type === "water") {
     const activeNow = isDietReminderActiveToday();
     const nextState = !activeNow;
-  if (type === "diet") {
-    cfg.dietNotifOn = false;
-    togSet("tog-modal-diet-notif", false);
+    cfg.dietNotifOn = nextState;
+    if (!nextState) {
+      data.dietOffDate = today; // Turning OFF applies ONLY for today!
+    } else {
+      delete data.dietOffDate;
+    }
+    togSet("tog-modal-diet-notif", nextState);
     togSet("tog-modal-water-notif", false);
   } else if (type === "water") {
     cfg.waterNotifOn = false;
@@ -4862,16 +4867,60 @@ function speakCurrentDietNotification(planObj) {
 }
 
 function triggerAyurvedicDietNotification(mealType) {
-  // Completely stopped Ayurvedic diet notifications as per user instruction
-  return;
+  if (!isDietReminderActiveToday()) return;
+  const plan = getDietPlanForCurrentState(mealType);
+
+  // 1. Show System Notification
+  if ("Notification" in window && Notification.permission === "granted") {
+    try {
+      const n = new Notification("🥗 Ayurvedic Diet & Hydration · " + plan.name, {
+        body: plan.title + "\nWater Target: " + plan.metrics.waterLiters + "L | Protein: " + plan.metrics.proteinGrams + "g",
+        icon: "./icon-192.png",
+        badge: "./icon-192.png",
+        tag: "surya-diet-notif",
+        renotify: true,
+        vibrate: [200, 100, 200]
+      });
+      n.onclick = () => {
+        try { window.focus(); } catch (e) {}
+        showDietModal(mealType);
+        n.close();
+      };
+    } catch (e) { console.warn("Notification error:", e); }
+  }
+
+  // 2. If app is visible, pop diet modal and autoplay voice
+  if (document.visibilityState === "visible") {
+    showDietModal(mealType);
+  }
 }
 
 let _dietNotifTimer = null;
 
 function scheduleAyurvedicDietNotifications() {
   if (_dietNotifTimer) { clearInterval(_dietNotifTimer); _dietNotifTimer = null; }
-  // Completely stopped Ayurvedic diet notifications as per user instruction
-  return;
+  if (cfg.dietNotifOn === false) return;
+
+  let lastTriggeredHour = -1;
+
+  _dietNotifTimer = setInterval(() => {
+    const now = new Date();
+    const h = now.getHours();
+    const m = now.getMinutes();
+
+    if (h === lastTriggeredHour) return;
+
+    if (h === 8 && m >= 0 && m <= 15) {
+      lastTriggeredHour = h;
+      triggerAyurvedicDietNotification("breakfast");
+    } else if (h === 13 && m >= 0 && m <= 15) {
+      lastTriggeredHour = h;
+      triggerAyurvedicDietNotification("lunch");
+    } else if (h === 19 && m >= 30 && m <= 45) {
+      lastTriggeredHour = h;
+      triggerAyurvedicDietNotification("dinner");
+    }
+  }, 60000);
 }
 
 let _waterNotifTimer = null;
@@ -6033,6 +6082,8 @@ updateClockDisplay();
 scheduleMidnightRollover(); // schedule goal unlock at 12:00 AM Midnight
 scheduleAlarm();            // schedule 5 AM alarm
 checkMorningGreeting();     // greet if user opens app near alarm time
+scheduleAyurvedicDietNotifications(); // schedule Ayurvedic diet notifications
+scheduleWaterIntakeReminders(); // schedule 2-hourly water hydration reminders
 checkSubscriptionReminder();
 checkAppLockState();
 

@@ -98,24 +98,21 @@ function fmtTime(ms) {
 
 /* ── MET & Calories calculations ───────────────────────────── */
 function getMetForPoseSec(poseSec) {
-  const sec = poseSec || cfg.poseSeconds || 5;
-  if(sec <= 3) return 11.5; // Vigorous pace (11–12 MET)
-  if(sec <= 5) return 9.5;  // Moderate-fast pace (9–10 MET)
-  if(sec <= 8) return 7.5;  // Moderate-slow pace (7–8 MET)
-  return 5.5;               // Slow meditative pace (5–6 MET)
+  return 12; // Standard MET for 1 round of Surya Namaskara
 }
 
 function calcSetCalories(sets, poseSec, weightKg) {
   if(!sets || sets <= 0) return 0;
-  const sec = poseSec || cfg.poseSeconds || 5;
-  const weight = weightKg || cfg.userWeight || 66;
-  const met = getMetForPoseSec(sec);
+  // Standard calorie burn calculation per set (~13.9 kcal/set @ 66kg)
+  // Standardized so changing seconds per pose (pace) does NOT alter calorie count
+  const weight = weightKg || (typeof cfg !== "undefined" && cfg.userWeight) || 66;
+  const met = 12; // Standard MET for Surya Namaskara
 
   // Standard MET formula: Calories/min = (MET * 3.5 * Weight) / 200
   const calPerMin = (met * 3.5 * weight) / 200;
 
-  // Exercise duration in minutes: (sets * 12 poses * sec) / 60
-  const durationMinutes = (sets * 12 * sec) / 60;
+  // Standard set duration = 1 minute per set (12 poses @ standard benchmark)
+  const durationMinutes = sets;
 
   // Total Calories burned
   return calPerMin * durationMinutes;
@@ -130,7 +127,7 @@ function fmtCalories(kcal) {
 
 function todayCalories() {
   const done = todayDone();
-  return calcSetCalories(done, cfg.poseSeconds || 5, cfg.userWeight || 66);
+  return calcSetCalories(done, 5, cfg.userWeight || 66);
 }
 
 function totalCalories() {
@@ -140,10 +137,10 @@ function totalCalories() {
     const rec = data.history[k];
     const sets = typeof rec === "number" ? rec : (rec.sets || 0);
     if(sets > 0) {
-      totalFromHistory += calcSetCalories(sets, cfg.poseSeconds || 5, cfg.userWeight || 66);
+      totalFromHistory += calcSetCalories(sets, 5, cfg.userWeight || 66);
     }
   });
-  const totalFromAllTime = calcSetCalories(data.totalAllTime || 0, cfg.poseSeconds || 5, cfg.userWeight || 66);
+  const totalFromAllTime = calcSetCalories(data.totalAllTime || 0, 5, cfg.userWeight || 66);
   return Math.max(totalFromHistory, totalFromAllTime);
 }
 
@@ -393,6 +390,10 @@ function loadAll() {
 
   const today = todayKey();
   if(data.lastDate && data.lastDate !== today) {
+    // Midnight / New Day reset: Re-enable Auto Phase Speed (Adaptive Pace)
+    cfg.autoPaceMode = true;
+    delete data.manualPaceOverrideDate;
+
     // Count actual calendar days elapsed (handles multi-day skips)
     const last = new Date(data.lastDate + "T00:00:00");
     const now  = new Date(today         + "T00:00:00");
@@ -616,6 +617,56 @@ document.addEventListener('DOMContentLoaded', () => {
   if (dismissBtn) dismissBtn.addEventListener('click', () => hideDndBanner());
 });
 
+/* ── Adaptive Pace Engine & Auto Phase Speed ─────────────────── */
+function getPhasePoseSeconds() {
+  if (typeof cfg !== "undefined" && cfg.autoPaceMode !== false) {
+    const done = typeof todayDone === "function" ? todayDone() : 0;
+    const goal = typeof todayGoal === "function" ? todayGoal() : 12;
+    const pct = goal > 0 ? (done / goal) : 0;
+
+    if (pct < 0.33) {
+      return 2.5; // Phase 1: Cardio Surge (first 33% of sets)
+    } else if (pct < 0.75) {
+      return 4.0; // Phase 2: Endurance Surge (33% to 75% of sets)
+    } else {
+      return 2.2; // Phase 3: Mindful Burnout (final 25% of sets)
+    }
+  }
+  return (typeof cfg !== "undefined" && cfg.poseSeconds) ? cfg.poseSeconds : 3.0;
+}
+
+function updatePhaseBadgeUI() {
+  const badge = document.getElementById("phase-badge");
+  if (!badge) return;
+
+  if (typeof cfg !== "undefined" && cfg.autoPaceMode !== false && typeof sess !== "undefined" && sess.active && !sess.paused) {
+    const done = typeof todayDone === "function" ? todayDone() : 0;
+    const goal = typeof todayGoal === "function" ? todayGoal() : 12;
+    const pct = goal > 0 ? (done / goal) : 0;
+
+    let text = "";
+    let color = "";
+    if (pct < 0.33) {
+      text = "⚡ Phase 1: Cardio Surge (2.5s)";
+      color = "#06B6D4";
+    } else if (pct < 0.75) {
+      text = "🔥 Phase 2: Endurance Surge (4.0s)";
+      color = "#F59E0B";
+    } else {
+      text = "🧘 Phase 3: Mindful Burnout (2.2s)";
+      color = "#10B981";
+    }
+
+    badge.textContent = text;
+    badge.style.borderColor = color;
+    badge.style.color = color;
+    badge.style.boxShadow = `0 0 14px ${color}66`;
+    badge.style.display = "inline-flex";
+  } else {
+    badge.style.display = "none";
+  }
+}
+
 /* ── Pose countdown timer ────────────────────────────────────── */
 function startPoseTimer() {
   clearPoseTimer();
@@ -623,7 +674,9 @@ function startPoseTimer() {
   poseTimerStart = Date.now();   // always fresh — pace change fix
   poseElapsed    = 0;
   document.getElementById("tbar-wrap").style.display="block";
-  const dur = cfg.poseSeconds * 1000;
+  const sec = getPhasePoseSeconds();
+  const dur = sec * 1000;
+  updatePhaseBadgeUI();
   function tick() {
     if(!sess.active||sess.paused) return;
     poseElapsed = Date.now() - poseTimerStart;
@@ -639,6 +692,7 @@ function clearPoseTimer() {
   poseElapsed=0;
   const tb=document.getElementById("tbar");
   if(tb) tb.style.width="100%";
+  updatePhaseBadgeUI();
 }
 
 /* ── Session stopwatch (goal timer) ─────────────────────────── */
@@ -739,6 +793,19 @@ function advanceStep() {
   const next=sess.step+1;
   if(next>=12){ completeSet(); return; }
   sess.step=next;
+
+  // Auto-capture key exercise movement for reel marketing video
+  if (!sess.capturedMovements) sess.capturedMovements = [];
+  if (STEPS[next]) {
+    sess.capturedMovements.push({
+      stepIndex: next,
+      poseName: STEPS[next].pose,
+      mantra: STEPS[next].mantraD,
+      breath: STEPS[next].breath,
+      timestamp: Date.now()
+    });
+  }
+
   speakMantra(STEPS[next].mantraD, STEPS[next].breath);
   startPoseTimer(); render();
 }
@@ -958,18 +1025,19 @@ function finishSession(goalDone) {
     const msg = "Namaste " + name + "! Today's target of " + todaySets + " rounds complete and locked." + streakMsg;
     setTimeout(()=>speakText(msg), 800);
 
-    // Auto-Generate Social Media Reel on Goal Completion / Streak Milestone (if enabled in settings)
-    if (cfg.autoReelOn !== false) {
-      setTimeout(() => {
+    // Auto-Generate 20s Workout Marketing Reel on Goal Completion
+    setTimeout(() => {
+      if (typeof autoGenerateWorkoutReel === "function") {
         autoGenerateWorkoutReel({
           type: isStreakMilestone ? "streak_milestone" : "goal_complete",
           todaySets: todaySets,
           totalSets: totalSets,
           streakDays: streak,
-          name: name
+          name: name,
+          capturedMovements: sess.capturedMovements || []
         });
-      }, 2000);
-    }
+      }
+    }, 1500);
 
     if(cfg.pranayamaAuto !== false) {
       setTimeout(()=>startPranaRestTransition(60), 3000);
@@ -1179,8 +1247,9 @@ function render() {
       "Set "+(done+1)+" of "+goal+" · Pose "+(sess.step+1)+"/12";
   }
 
-  // Pace display
-  document.getElementById("spd-v").textContent = cfg.poseSeconds+"s / pose";
+  // Pace display — reflects active running phase seconds (e.g. 2.5s / 4.0s / 2.2s) when Auto Phase Speed is ON
+  const activePoseSec = typeof getPhasePoseSeconds === "function" ? getPhasePoseSeconds() : cfg.poseSeconds;
+  document.getElementById("spd-v").textContent = activePoseSec + "s / pose";
 
   // Voice button
   document.getElementById("voice-btn").classList.toggle("on",!voiceMuted);
@@ -2224,21 +2293,32 @@ function syncChartUI() {
   if(t) t.textContent = "Last "+days+" days progress";
 }
 
-// PACE BUTTONS — fix: always use integer, save immediately
+// PACE BUTTONS — Manual pace adjustment disables Auto Phase Speed for today
+function handleManualPaceAdjustment(delta) {
+  cfg.poseSeconds = Math.max(2, Math.min(30, Math.round((cfg.poseSeconds || 5) + delta)));
+  
+  // Disable Auto Phase Speed mode for today when pace is manually altered
+  if (cfg.autoPaceMode !== false) {
+    cfg.autoPaceMode = false;
+    data.manualPaceOverrideDate = todayKey();
+    const btn = document.getElementById("tog-auto-phase");
+    if (btn) btn.className = "tog";
+    if (typeof updatePhaseBadgeUI === "function") updatePhaseBadgeUI();
+    if (typeof setStatus === "function") {
+      setStatus("⏱ Manual Pace set to " + cfg.poseSeconds + "s (Auto Phase Speed disabled for today)");
+    }
+  }
+
+  saveAll();
+  render();
+  if (sess.active && !sess.paused) { poseTimerStart = Date.now(); }
+}
+
 const spdUp = document.getElementById("spd-up");
-if(spdUp) spdUp.addEventListener("click",()=>{
-  cfg.poseSeconds = Math.min(30, (cfg.poseSeconds||5)+1);
-  saveAll(); render();
-  // If currently running, restart pose timer with new duration
-  if(sess.active&&!sess.paused){ poseTimerStart=Date.now(); }
-});
+if (spdUp) spdUp.addEventListener("click", () => handleManualPaceAdjustment(1));
 
 const spdDn = document.getElementById("spd-dn");
-if(spdDn) spdDn.addEventListener("click",()=>{
-  cfg.poseSeconds = Math.max(2, (cfg.poseSeconds||5)-1);
-  saveAll(); render();
-  if(sess.active&&!sess.paused){ poseTimerStart=Date.now(); }
-});
+if (spdDn) spdDn.addEventListener("click", () => handleManualPaceAdjustment(-1));
 
 // Manual advance (auto off)
 const ringWrap = document.querySelector(".ring-wrap");
@@ -6316,39 +6396,12 @@ async function autoGenerateWorkoutReel(info) {
     const type = info?.type || "goal_complete";
     const streak = computeStreak();
 
-    // Web Audio Context for background chime
-    let audioCtx = null;
-    try {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    } catch(e){}
-
-    const dest = audioCtx ? audioCtx.createMediaStreamDestination() : null;
-
-    if (audioCtx && dest) {
-      try {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(528, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3.0);
-        osc.connect(gain);
-        gain.connect(dest);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 3.0);
-      } catch(e){}
-    }
-
     let stream = null;
     try {
       stream = canvas.captureStream ? canvas.captureStream(30) : null;
     } catch(e){ stream = null; }
 
-    if (stream && dest && dest.stream.getAudioTracks().length > 0) {
-      try { stream.addTrack(dest.stream.getAudioTracks()[0]); } catch(e){}
-    }
-
-    const mimeTypes = ['video/webm;codecs=vp9,opus', 'video/webm', 'video/mp4'];
+    const mimeTypes = ['video/mp4;codecs=avc1,mp4a.40.2', 'video/mp4;codecs=h264', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'];
     let selectedMime = mimeTypes.find(m => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) || '';
 
     let recorder = null;
@@ -6366,7 +6419,8 @@ async function autoGenerateWorkoutReel(info) {
       recorder.onstop = async () => {
         try {
           if (chunks.length > 0) {
-            generatedReelBlob = new Blob(chunks, { type: selectedMime || 'video/webm' });
+            const finalMime = (selectedMime && selectedMime.includes("mp4")) ? "video/mp4" : (selectedMime || "video/mp4");
+            generatedReelBlob = new Blob(chunks, { type: finalMime });
           }
         } catch(e){}
         
@@ -6385,33 +6439,34 @@ async function autoGenerateWorkoutReel(info) {
       try { recorder.start(1000); } catch(e){}
     }
 
-    // Render 9:16 Animated Canvas Reel (15 seconds total: 5s Gita Opening + 10s Workout Highlights)
+    // Render 9:16 Animated Canvas Reel (17 seconds total: 9s Gita Opening + 8s Workout Highlights)
     let frame = 0;
-    const maxFrames = 450; // 15 seconds @ 30 FPS
+    const maxFrames = 510; // 17 seconds @ 30 FPS
     const d = new Date();
     const dateStr = d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" });
 
     // Fetch Today's Gita Quote & Meaning for Scene 1
-    const gQuote = typeof getDailyGitaQuote === "function" ? getDailyGitaQuote() : { ref: "श्रीमद्भगवद्गीता २.४७", shloka: "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि॥", hi: "तुम्हारा अधिकार केवल कर्म करने में है, उसके फलों में कभी नहीं।" };
+    const gQuote = typeof getDailyGitaQuote === "function" ? getDailyGitaQuote() : { ref: "श्रीमद्भगवद्गीता २.४७", sanskrit: "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि॥", hi: "तुम्हारा अधिकार केवल कर्म करने में है, उसके फलों में कभी नहीं।" };
     const gMeaning = typeof getQuoteMeaning === "function" ? getQuoteMeaning(gQuote) : (gQuote.hi || gQuote.en || "");
+    const rawSanskrit = gQuote.sanskrit || gQuote.shloka || "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि॥";
 
     animInterval = setInterval(() => {
       frame++;
 
-      if (frame % 15 === 0) {
-        const pct = Math.floor((frame / maxFrames) * 100);
+      if (frame % 5 === 0 || frame === maxFrames) {
+        const pct = Math.min(100, Math.floor((frame / maxFrames) * 100));
         const b = document.getElementById("btn-open-reel");
         if (b) {
-          b.innerHTML = `🎬 Generating Workout Reel <span style="font-size:11px;background:#25D366;color:#111B21;padding:2px 7px;border-radius:10px;font-weight:900">${pct}%</span>`;
+          b.innerHTML = `🎬 Generating Reel <span style="font-size:11px;background:#25D366;color:#111B21;padding:2px 7px;border-radius:10px;font-weight:900">${pct}%</span>`;
         }
       }
 
       // ═════════════════════════════════════════════════════════════
-      // SCENE 1 (Frames 1 to 150 = 0s to 5s): BHAGAVAD GITA OPENING
+      // SCENE 1 (Frames 1 to 270 = 0s to 9.0s): BHAGAVAD GITA OPENING
       // ═════════════════════════════════════════════════════════════
-      if (frame <= 150) {
+      if (frame <= 270) {
         let opacity = 1;
-        if (frame > 120) opacity = (150 - frame) / 30; // Smooth fade out to Scene 2
+        if (frame > 240) opacity = (270 - frame) / 30; // Smooth fade out to Scene 2
 
         ctx.save();
         ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
@@ -6463,12 +6518,12 @@ async function autoGenerateWorkoutReel(info) {
         ctx.stroke();
 
         ctx.fillStyle = "#FFD700";
-        ctx.font = "900 30px 'Noto Sans Devanagari', serif";
-        const shlokaLines = (gQuote.shloka || "").split("\n");
-        let lineY = sBoxY + 80;
+        ctx.font = "900 28px 'Noto Sans Devanagari', 'Mukta', 'Kohinoor Devanagari', 'Segoe UI Historic', 'Arial Unicode MS', sans-serif";
+        const shlokaLines = rawSanskrit.split("\n");
+        let lineY = sBoxY + (shlokaLines.length > 2 ? 65 : 90);
         shlokaLines.forEach(line => {
           ctx.fillText(line.trim(), 360, lineY);
-          lineY += 55;
+          lineY += 50;
         });
 
         // 5. Meaning / Translation Box
@@ -6500,10 +6555,10 @@ async function autoGenerateWorkoutReel(info) {
       }
 
       // ═════════════════════════════════════════════════════════════
-      // SCENE 2 (Frames 151 to 450 = 5s to 15s): WORKOUT HIGHLIGHTS
+      // SCENE 2 (Frames 271 to 510 = 9s to 17s): WORKOUT HIGHLIGHTS
       // ═════════════════════════════════════════════════════════════
-      const scene2Frame = frame - 150;
-      const scene2MaxFrames = 300;
+      const scene2Frame = frame - 270;
+      const scene2MaxFrames = 240;
 
       // 1. Dark Solar Background Gradient
       const grad = ctx.createRadialGradient(360, 400, 50, 360, 640, 800);
@@ -6808,6 +6863,42 @@ function showReelSocialModal(info) {
     modal.style.cssText = "display:flex !important; position:fixed !important; inset:0 !important; z-index:999999 !important; background:rgba(7,11,20,0.95) !important; backdrop-filter:blur(16px) !important; align-items:center !important; justify-content:center !important;";
     modal.classList.add("show");
   }
+
+  // Play synchronized scene voice narration when modal opens
+  if (window.speechSynthesis && !voiceMuted) {
+    try {
+      window.speechSynthesis.resume();
+      qClear();
+
+      const gQuote = typeof getDailyGitaQuote === "function" ? getDailyGitaQuote() : { ref: "श्रीमद्भगवद्गीता २.४७", sanskrit: "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि॥", hi: "तुम्हारा अधिकार केवल कर्म करने में है, उसके फलों में कभी नहीं।" };
+      const gMeaning = typeof getQuoteMeaning === "function" ? getQuoteMeaning(gQuote) : (gQuote.hi || gQuote.en || "");
+      const rawSanskrit = gQuote.sanskrit || gQuote.shloka || "";
+
+      // 1. Scene 1 Voice: Sanskrit Shloka + Meaning
+      const shlokaText = (gQuote.ref || "श्रीमद्भगवद्गीता") + ". " + rawSanskrit.replace(/\n/g, " ") + ". अर्थ: " + gMeaning;
+      const u1 = new SpeechSynthesisUtterance(shlokaText);
+      u1.rate = 0.92;
+      u1.lang = "hi-IN";
+
+      // 2. Scene 2 Voice: Today's Rounds + Total Rounds + High Energy Motivational Appreciation
+      const todaySets = info?.todaySets || todayDone();
+      const totalSets = info?.totalSets || data.totalAllTime;
+      const streakDays = computeStreak();
+      const name = info?.name || cfg.userName || "Vaibhav";
+      const lang = cfg.quoteLang || cfg.pranaLang || "hi";
+
+      const scene2Text = lang === "hi"
+        ? `उत्कृष्ट साधना ${name}! आज आपने ${todaySets} सूर्य नमस्कार सफलतापूर्वक पूरे किए हैं। आपका लगातार वर्कआउट स्ट्रिक ${streakDays} दिन का है और कुल लाइफटाइम सेट ${totalSets} हैं। शानदार समर्पण!`
+        : `Sensational achievement ${name}! Today you completed ${todaySets} rounds of Surya Namaskara. You have mastered a ${streakDays} day continuous workout streak and ${totalSets} total lifetime rounds. Keep shining with divine solar energy everyday!`;
+
+      const u2 = new SpeechSynthesisUtterance(scene2Text);
+      u2.rate = 0.95;
+      u2.lang = lang === "en" ? "en-IN" : "hi-IN";
+
+      qSpeak(u1);
+      qSpeak(u2);
+    } catch(e){}
+  }
 }
 
 function closeReelSocialModal() {
@@ -6820,6 +6911,11 @@ function closeReelSocialModal() {
   if (vid) { try { vid.pause(); vid.src = ""; } catch(e){} }
   const img = document.getElementById("reel-image-preview");
   if (img) { img.style.display = "none"; img.src = ""; }
+
+  try {
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    qClear();
+  } catch(e){}
 }
 
 async function shareReelToSocialMedia() {
@@ -6852,25 +6948,74 @@ async function shareReelToSocialMedia() {
   if (shareBtn) shareBtn.innerHTML = "📲 Share Reel to WhatsApp Status";
 }
 
-function downloadReelVideo() {
-  if (!generatedReelBlob) return;
+async function downloadReelVideo() {
+  if (!generatedReelBlob) {
+    alert("Reel video is not ready yet. Generating your workout reel now...");
+    handleOpenReelClick();
+    return;
+  }
   markReelAsSavedOrShared();
 
   const dlBtn = document.getElementById("btn-download-reel");
-  if (dlBtn) dlBtn.innerHTML = "📥 Saved to Gallery! 100% ✓";
+  if (dlBtn) dlBtn.innerHTML = "📥 Saved MP4 to Gallery! 100% ✓";
 
   const isImg = generatedReelBlob.type.startsWith("image/");
-  const ext = isImg ? "png" : (generatedReelBlob.type.includes("mp4") ? "mp4" : "webm");
-  const url = URL.createObjectURL(generatedReelBlob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `SuryaNamaskara_Workout_Reel_${Date.now()}.${ext}`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  const ext = isImg ? "png" : "mp4";
+  const fileName = `SuryaNamaskara_Workout_Reel_${Date.now()}.${ext}`;
+
+  // 1. Direct Browser MP4 File Download
+  try {
+    const url = URL.createObjectURL(generatedReelBlob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    a.setAttribute("download", fileName);
+    a.target = "_blank";
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      try { document.body.removeChild(a); } catch(e){}
+    }, 1500);
+  } catch(e) {
+    console.warn("Direct MP4 download error:", e);
+  }
+
+  // 2. Mobile Native Share/Save Sheet (Android & iOS Gallery)
+  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  if (isMobile && navigator.canShare) {
+    try {
+      const file = new File([generatedReelBlob], fileName, { type: isImg ? "image/png" : "video/mp4" });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: "Save Surya Namaskara Reel MP4",
+          text: "Save your Surya Namaskara Reel MP4 video to your device gallery!"
+        });
+      }
+    } catch (e){}
+  }
+
+  // 3. Base64 DataURL Backup for WebViews
+  try {
+    const reader = new FileReader();
+    reader.onloadend = function() {
+      try {
+        const base64data = reader.result;
+        const a2 = document.createElement("a");
+        a2.href = base64data;
+        a2.download = fileName;
+        a2.setAttribute("download", fileName);
+        document.body.appendChild(a2);
+        a2.click();
+        setTimeout(() => { try { document.body.removeChild(a2); } catch(e){} }, 1500);
+      } catch(e){}
+    };
+    reader.readAsDataURL(generatedReelBlob);
+  } catch(e){}
 
   setTimeout(() => {
-    if (dlBtn) dlBtn.innerHTML = "📥 Save Reel to Gallery / Device";
+    if (dlBtn) dlBtn.innerHTML = "📥 Save Reel MP4 to Gallery / Device";
   }, 2500);
 }
 
@@ -6967,3 +7112,5 @@ window.shareReelToSocialMedia = shareReelToSocialMedia;
 window.downloadReelVideo = downloadReelVideo;
 window.cleanupOldWorkoutReels = cleanupOldWorkoutReels;
 window.handleOpenReelClick = handleOpenReelClick;
+window.getPhasePoseSeconds = getPhasePoseSeconds;
+window.updatePhaseBadgeUI = updatePhaseBadgeUI;

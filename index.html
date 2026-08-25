@@ -508,9 +508,33 @@
 
       50% {
         transform: scale(1.08);
-        box-shadow: 0 0 22px rgba(251, 191, 36, 0.9), 0 0 35px rgba(249, 115, 22, 0.7);
-        border-color: #FFF5C0;
+        box-shadow: 0 0 22px rgba(251, 191, 36, 0.9), 0 0 35px rgba(249, 115, 22, 0.6);
+        border-color: #FFD700;
       }
+    }
+
+    /* Auto Phase Speed Badge & Glow Animation */
+    #phase-badge {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 800;
+      border: 1.5px solid #06B6D4;
+      color: #06B6D4;
+      background: rgba(15, 23, 42, 0.85);
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.35);
+      animation: phaseGlowPulse 2s infinite alternate;
+      margin: 8px auto 4px auto;
+    }
+
+    @keyframes phaseGlowPulse {
+      0% { transform: scale(1); box-shadow: 0 0 8px rgba(245, 158, 11, 0.3); }
+      50% { transform: scale(1.03); box-shadow: 0 0 16px rgba(245, 158, 11, 0.6); }
+      100% { transform: scale(1); box-shadow: 0 0 8px rgba(245, 158, 11, 0.3); }
     }
 
     @keyframes sunNotifBlink {
@@ -1672,6 +1696,9 @@
     <!-- Set dots -->
     <div class="dots" id="dots"></div>
 
+    <!-- Dynamic Auto Phase Speed Badge -->
+    <div id="phase-badge">⚡ Phase 1: Cardio Surge (2.5s)</div>
+
 
     <!-- Grace countdown between rounds -->
     <div class="grace-wrap" id="grace-wrap">
@@ -2079,6 +2106,10 @@
       <div class="srow">
         <label>⚡ Auto-advance poses</label>
         <button class="tog on" id="tog-auto"></button>
+      </div>
+      <div class="srow">
+        <label>⚡ Auto Phase Speed (Adaptive Pace)</label>
+        <button class="tog on" id="tog-auto-phase"></button>
       </div>
 
       <div class="srow divider">
